@@ -19,3 +19,15 @@ struct obst // Obsticles in plane
 {
 
 };
+
+int main()
+{
+    return(0);
+}
+
+// Support functions
+
+void randomPointPosition()
+{
+    
+}

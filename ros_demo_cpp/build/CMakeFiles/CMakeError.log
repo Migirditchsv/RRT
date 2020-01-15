@@ -1,24 +1,24 @@
 Determining if the pthread_create exist failed with the following output:
-Change Dir: /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp
+Change Dir: /home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_3efd2/fast"
-/usr/bin/make -f CMakeFiles/cmTC_3efd2.dir/build.make CMakeFiles/cmTC_3efd2.dir/build
-make[1]: Entering directory '/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_3efd2.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_3efd2.dir/CheckSymbolExists.c.o   -c /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-Linking C executable cmTC_3efd2
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3efd2.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_3efd2.dir/CheckSymbolExists.c.o  -o cmTC_3efd2 
-CMakeFiles/cmTC_3efd2.dir/CheckSymbolExists.c.o: In function `main':
+Run Build Command:"/usr/bin/make" "cmTC_780f6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_780f6.dir/build.make CMakeFiles/cmTC_780f6.dir/build
+make[1]: Entering directory '/home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_780f6.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_780f6.dir/CheckSymbolExists.c.o   -c /home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_780f6
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_780f6.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_780f6.dir/CheckSymbolExists.c.o  -o cmTC_780f6 
+CMakeFiles/cmTC_780f6.dir/CheckSymbolExists.c.o: In function `main':
 CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_3efd2.dir/build.make:97: recipe for target 'cmTC_3efd2' failed
-make[1]: *** [cmTC_3efd2] Error 1
-make[1]: Leaving directory '/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_3efd2/fast' failed
-make: *** [cmTC_3efd2/fast] Error 2
+CMakeFiles/cmTC_780f6.dir/build.make:97: recipe for target 'cmTC_780f6' failed
+make[1]: *** [cmTC_780f6] Error 1
+make[1]: Leaving directory '/home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_780f6/fast' failed
+make: *** [cmTC_780f6/fast] Error 2
 
-File /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+File /home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
 #include <pthread.h>
 
@@ -34,22 +34,22 @@ int main(int argc, char** argv)
 }
 
 Determining if the function pthread_create exists in the pthreads failed with the following output:
-Change Dir: /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp
+Change Dir: /home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_58526/fast"
-/usr/bin/make -f CMakeFiles/cmTC_58526.dir/build.make CMakeFiles/cmTC_58526.dir/build
-make[1]: Entering directory '/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_58526.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_58526.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
-Linking C executable cmTC_58526
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_58526.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_58526.dir/CheckFunctionExists.c.o  -o cmTC_58526 -lpthreads 
+Run Build Command:"/usr/bin/make" "cmTC_70812/fast"
+/usr/bin/make -f CMakeFiles/cmTC_70812.dir/build.make CMakeFiles/cmTC_70812.dir/build
+make[1]: Entering directory '/home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_70812.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_70812.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_70812
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_70812.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_70812.dir/CheckFunctionExists.c.o  -o cmTC_70812 -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_58526.dir/build.make:97: recipe for target 'cmTC_58526' failed
-make[1]: *** [cmTC_58526] Error 1
-make[1]: Leaving directory '/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_58526/fast' failed
-make: *** [cmTC_58526/fast] Error 2
+CMakeFiles/cmTC_70812.dir/build.make:97: recipe for target 'cmTC_70812' failed
+make[1]: *** [cmTC_70812] Error 1
+make[1]: Leaving directory '/home/sam/Documents/Code/RRT/ros_demo_cpp/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_70812/fast' failed
+make: *** [cmTC_70812/fast] Error 2
 
 
