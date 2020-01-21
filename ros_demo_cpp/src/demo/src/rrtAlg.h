@@ -4,11 +4,15 @@ Data typing based on: https://www.geeksforgeeks.org/shortest-path-for-directed-a
 By: Sam Migirditch migirditch@gmail.com
 Last edit: 01/14/2020
 */
-
+# pragma once
 #include <cmath> /* point distance measures */
 #include <iostream> /* status & debug */
 #include <random> /* srand, rand */
 #include <list> /* Lists for DAG structures */
+// ROS includes
+#include "ros/ros.h"
+#include "std_msgs/String.h"
+#include <visualization_msgs/Marker.h>
 
 // Definitions
 const unsigned int RANDOM_SEED = 41407283;
@@ -43,8 +47,8 @@ struct point // points in grid for start and stop points
     // Public member function
     void randomPosition(double width, double height);
     void refreshDistance(point *target);
-    void placeValidPoint();
-    bool collisionTest();
+    void placeValidPoint(std::list<visualization_msgs::Marker> *obst);
+    bool collisionTest(std::list<visualization_msgs::Marker> *obst);
 };
 
 class graph
@@ -62,18 +66,18 @@ public:
 
 
 
-int main()
+int rrtSolve(visualization_msgs::Marker *startPoint, visualization_msgs::Marker *endPoint, visualization_msgs::Marker *obst)
 {
     // Start randomization engine
     srand(RANDOM_SEED);
     // Preallocate adj. matrix
 
     // Place start and end points in opposite corners
-    point startPoint(0, -WIDTH,-HEIGHT);
-    point endPoint(VERTICIES+1, WIDTH,HEIGHT);
-    startPoint.refreshDistance(&endPoint);
+    //point startPoint(0, -WIDTH,-HEIGHT);
+    //point endPoint(VERTICIES+1, WIDTH,HEIGHT);
+    //startPoint.refreshDistance(&endPoint);
 
-    std::cout << "Main: DONE \n";
+    std::cout << "RRT: DONE \n";
     return(0);
 }
 
@@ -95,7 +99,7 @@ void point::refreshDistance(point *target)
     this -> distance = sqrt( pow( targetX-localX , 2) + pow(targetY-localY , 2) );
 }
 
-void point::placeValidPoint()
+void point::placeValidPoint(std::list<visualization_msgs::Marker> *obst)
 {
     const int tries = 100;
     bool flag = 0;
@@ -103,7 +107,7 @@ void point::placeValidPoint()
     for (int i=0; i<=tries; i++)
     {
         this -> randomPosition(WIDTH, HEIGHT);
-        bool collision = this -> collisionTest();
+        bool collision = this -> collisionTest(obst);
         if (collision == 0) {flag = 1; break;}
     }
     if( flag == 0 ) // IF FLAIL TO FIND OPEN SPACE, EXIT
@@ -114,7 +118,9 @@ void point::placeValidPoint()
     
 }
 
-bool point::collisionTest()
+bool point::collisionTest(std::list<visualization_msgs::Marker> *obst)
 {
-
+    int len = obst -> size();
+    std::cout<< "collisionTest| obst size = :"<<len;
+    return(0);
 }

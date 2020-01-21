@@ -9,6 +9,57 @@ Last update: 9/10/2019
 #include "std_msgs/String.h"
 #include <visualization_msgs/Marker.h>
 #include <sstream>
+#include <random>
+
+
+
+bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
+{
+  double scaleX, scaleY;
+
+  int len = sizeof(obj)/sizeof(obj[0]); // good trick to remember for object array sizing
+  double x = p.x;
+  double y = p.y;
+  double pSize = 0;
+  bool collision;
+
+  for(int i=0; i<len; i++)
+  {
+    int type = obj[i].type;
+    switch(type)
+    {
+      case 1 : // Cube
+      std::cout<<"collisionTest| CUBE!!!!";
+      scaleX = obj[i].scale.x;
+      scaleY = obj[i].scale.y;
+      break;
+
+      case 3 : // Cylinder
+      std::cout<<"collisionTest| CYL!!!!";
+      break;
+
+      case 4 : // line_strip
+      std::cout<<"collisionTest| LINE!!!!";
+      break;
+
+      default: std::cerr<<"collisionTest: WARNING: type "<<type<<" unrecognized. Aborting";
+      exit(0);
+    }
+  }
+
+  return(len);
+}
+
+
+double pointDistance(geometry_msgs::Point a, geometry_msgs::Point b)
+{
+  double xDiff = pow( a.x - b.x, 2 );
+  double yDiff = pow( a.y - b.y, 2 );
+  double dist = sqrt( xDiff + yDiff );
+
+  return(dist);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -304,6 +355,10 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
+double journey = pointDistance( GoalPoint.points[0],GoalPoint.points[1]);
+std::cout<<"journey length: "<<journey<< "obst[0].type= "<<obst[0].type;
+bool safe = collisionTest(GoalPoint.points[0], obst);
+std::cout<<"collision? "<<safe;
 
   /******************** To here, we finished displaying our components **************************/
 

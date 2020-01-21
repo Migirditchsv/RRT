@@ -1,8 +1,8 @@
-# Install script for directory: /home/sam/Documents/Code/RRT/ros_demo_cpp/src/demo
+# Install script for directory: /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/src/demo
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/sam/Documents/Code/RRT/ros_demo_cpp/install")
+  set(CMAKE_INSTALL_PREFIX "/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,17 +38,17 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/sam/Documents/Code/RRT/ros_demo_cpp/build/demo/catkin_generated/installspace/ros_demo.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/demo/catkin_generated/installspace/ros_demo.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ros_demo/cmake" TYPE FILE FILES
-    "/home/sam/Documents/Code/RRT/ros_demo_cpp/build/demo/catkin_generated/installspace/ros_demoConfig.cmake"
-    "/home/sam/Documents/Code/RRT/ros_demo_cpp/build/demo/catkin_generated/installspace/ros_demoConfig-version.cmake"
+    "/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/demo/catkin_generated/installspace/ros_demoConfig.cmake"
+    "/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build/demo/catkin_generated/installspace/ros_demoConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ros_demo" TYPE FILE FILES "/home/sam/Documents/Code/RRT/ros_demo_cpp/src/demo/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/ros_demo" TYPE FILE FILES "/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/src/demo/package.xml")
 endif()
 
