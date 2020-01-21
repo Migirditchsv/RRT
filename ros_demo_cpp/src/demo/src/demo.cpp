@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 
       obst[i].lifetime = ros::Duration();
       marker_pub.publish(obst[i]);
-    }
+    } 
 
     //draw cylinder type obstacles
     for (int i = 4; i<7; i++) {
