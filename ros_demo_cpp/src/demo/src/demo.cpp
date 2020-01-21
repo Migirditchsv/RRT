@@ -10,44 +10,67 @@ Last update: 9/10/2019
 #include <visualization_msgs/Marker.h>
 #include <sstream>
 #include <random>
+#include <iterator>
 
 
 
 bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
 {
-  double scaleX, scaleY;
+  double scaleX, scaleY, objX, objY, distX, distY, dist;
+  bool  right, left, top, bottom, collision = 0;
+  int type;
 
-  int len = sizeof(obj)/sizeof(obj[0]); // good trick to remember for object array sizing
+  int len =  7;
+
   double x = p.x;
   double y = p.y;
-  double pSize = 0;
-  bool collision;
+  double sizeP = 0;
 
   for(int i=0; i<len; i++)
   {
-    int type = obj[i].type;
+    type = obj[i].type;
+    objX = obj[i].pose.position.x;
+    objY = obj[i].pose.position.y;
+
     switch(type)
     {
       case 1 : // Cube
-      std::cout<<"collisionTest| CUBE!!!!";
-      scaleX = obj[i].scale.x;
-      scaleY = obj[i].scale.y;
+      std::cout<<"\ncollisionTest| CUBE!!!!\n"<<fflush;
+      scaleX = obj[i].scale.x / 2.0;
+      scaleY = obj[i].scale.y / 2.0;
+
+      
+      // detect if within boundaries
+      left = x>= objX - scaleX - sizeP;
+      right = x<= objX + scaleX + sizeP;
+      bottom = x >=objY - scaleY - sizeP;
+      top = x<= objY - scaleY -sizeP;
+
+      if( left and right and top and bottom ){collision = 1;}
+
       break;
 
       case 3 : // Cylinder
-      std::cout<<"collisionTest| CYL!!!!";
+      std::cout<<"\ncollisionTest| CYL!!!!\n";
+      scaleX = obj[i].scale.x / 2.0;
+      distX = pow( abs(x-objX) - sizeP , 2);
+      distY = pow( abs(y-objY) - sizeP , 2);
+      dist = sqrt(distX+distY);
+
+      if( dist<= scaleX){collision = 1;}
+
       break;
 
-      case 4 : // line_strip
-      std::cout<<"collisionTest| LINE!!!!";
-      break;
+      //case 4 : // line_strip
+      //std::cout<<"collisionTest| LINE!!!!";
+      //break;
 
       default: std::cerr<<"collisionTest: WARNING: type "<<type<<" unrecognized. Aborting";
       exit(0);
     }
   }
 
-  return(len);
+  return(collision);
 }
 
 
