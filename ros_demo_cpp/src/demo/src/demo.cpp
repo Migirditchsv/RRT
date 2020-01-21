@@ -10,14 +10,6 @@ Last update: 9/10/2019
 #include <visualization_msgs/Marker.h>
 #include <sstream>
 
-// declare some global functions we'll need
-void chatterCallback(const std_msgs::String::ConstPtr& msg) // reads in from chatter_pub
-void markerCallback( const vizualization_msgs::Marker::ConstPtr& vis)// obstacle, rob and marker data here 
-void RTT(
-
-// Declare some global vars
-
-)
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "ros_demo");
@@ -139,7 +131,7 @@ int main(int argc, char **argv)
 
       obst[i].lifetime = ros::Duration();
       marker_pub.publish(obst[i]);
-    } 
+    }
 
     //draw cylinder type obstacles
     for (int i = 4; i<7; i++) {
@@ -312,9 +304,6 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
-  // Teleport robot marker (rob) to start point
-  geometry_msgs::Point r;
-  r = 
 
   /******************** To here, we finished displaying our components **************************/
 
