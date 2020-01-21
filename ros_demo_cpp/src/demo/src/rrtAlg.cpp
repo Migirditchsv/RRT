@@ -5,10 +5,10 @@ By: Sam Migirditch migirditch@gmail.com
 Last edit: 01/14/2020
 */
 
-#include <cmath>
-#include <iostream>
-#include <random>
-#include <list>
+#include <cmath> /* point distance measures */
+#include <iostream> /* status & debug */
+#include <random> /* srand, rand */
+#include <list> /* Lists for DAG structures */
 
 // Definitions
 const unsigned int RANDOM_SEED = 41407283;
@@ -44,7 +44,7 @@ struct point // points in grid for start and stop points
     void randomPosition(double width, double height);
     void refreshDistance(point *target);
     void placeValidPoint();
-
+    bool collisionTest();
 };
 
 class graph
@@ -52,18 +52,15 @@ class graph
     int size; // number of verticies
     std::list<point> *nodes;
     // private fxn
-    void refreshSize(){this -> size = nodes.size() }
+    void refreshSize(){this -> size = nodes -> size(); }
 
 public:
     graph(int initSize);
-    int getSize() {this -> refreshSize(); return(graph.size);}
+    int getSize() {this -> refreshSize(); int ans = this -> size; return(ans);}
     void addPoint(point *pointptr);
 };
 
-struct obst // Obsticles in plane
-{
 
-};
 
 int main()
 {
@@ -76,7 +73,7 @@ int main()
     point endPoint(VERTICIES+1, WIDTH,HEIGHT);
     startPoint.refreshDistance(&endPoint);
 
-
+    std::cout << "Main: DONE \n";
     return(0);
 }
 
@@ -98,13 +95,26 @@ void point::refreshDistance(point *target)
     this -> distance = sqrt( pow( targetX-localX , 2) + pow(targetY-localY , 2) );
 }
 
-void point::placeValidPoint();
+void point::placeValidPoint()
 {
-    int tries = 100;
+    const int tries = 100;
+    bool flag = 0;
 
-    for( int i=0;i<100;i++)
+    for (int i=0; i<=tries; i++)
     {
-
+        this -> randomPosition(WIDTH, HEIGHT);
+        bool collision = this -> collisionTest();
+        if (collision == 0) {flag = 1; break;}
+    }
+    if( flag == 0 ) // IF FLAIL TO FIND OPEN SPACE, EXIT
+    {
+        std::cout << "ERROR | point::placeValidPoint() | FAILED TO AVOID COLLISION AFTER "<<tries<<" tries.";
+        exit(0);
     }
     
+}
+
+bool point::collisionTest()
+{
+
 }
