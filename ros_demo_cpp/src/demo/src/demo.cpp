@@ -12,7 +12,16 @@ Last update: 9/10/2019
 #include <random>
 #include <iterator>
 
+//Global Controls
 
+const double WIDTH = 10;
+const int SEED = 59073451;
+
+double fRand(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
 
 bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
 {
@@ -20,7 +29,7 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
   bool  right, left, top, bottom, collision = 0;
   int type;
 
-  int len =  7;
+  int len =  7; // V. bad form but sizeof(a)/sizeof(a[0]) fails
 
   double x = p.x;
   double y = p.y;
@@ -32,10 +41,13 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
     objX = obj[i].pose.position.x;
     objY = obj[i].pose.position.y;
 
+    // Check for out of bounds width = 10
+    if ( objX >= WIDTH or objY >= WIDTH ) { return (1); }
+
     switch(type)
     {
       case 1 : // Cube
-      std::cout<<"\ncollisionTest| CUBE!!!!\n"<<fflush;
+      std::cout<<"\ncollisionTest| CUBE\n";
       scaleX = obj[i].scale.x / 2.0;
       scaleY = obj[i].scale.y / 2.0;
 
@@ -46,18 +58,26 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
       bottom = x >=objY - scaleY - sizeP;
       top = x<= objY - scaleY -sizeP;
 
-      if( left and right and top and bottom ){collision = 1;}
+      if( left and right and top and bottom )
+      {
+        collision = 1;
+        std::cout << "collisionTest| Cube collision \n" << fflush;
+      }
 
       break;
 
       case 3 : // Cylinder
-      std::cout<<"\ncollisionTest| CYL!!!!\n";
+      std::cout<<"\ncollisionTest| CYL\n";
       scaleX = obj[i].scale.x / 2.0;
       distX = pow( abs(x-objX) - sizeP , 2);
       distY = pow( abs(y-objY) - sizeP , 2);
       dist = sqrt(distX+distY);
 
-      if( dist<= scaleX){collision = 1;}
+      if( dist<= scaleX)
+      {
+        collision = 1;
+        std::cout << "collisionTest| Cyl collision \n" << fflush;
+      }
 
       break;
 
@@ -65,11 +85,11 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
       //std::cout<<"collisionTest| LINE!!!!";
       //break;
 
-      default: std::cerr<<"collisionTest: WARNING: type "<<type<<" unrecognized. Aborting";
+      default: std::cerr<<"collisionTest: WARNING: type "<<type<<" unrecognized. Aborting"<<std::endl;
       exit(0);
     }
   }
-
+  std::cout << "collisionTest| collision: "<< collision << std::endl;
   return(collision);
 }
 
@@ -83,9 +103,51 @@ double pointDistance(geometry_msgs::Point a, geometry_msgs::Point b)
   return(dist);
 }
 
+void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[])
+{
+  std::cout<<"randomValidPoint| HIT\n"<<fflush;
+  int tries = 100;
+  double x,y;
+  bool collision;
+
+  for( int i = 0; i <= tries; i++)
+  {
+    x = fRand( -WIDTH, WIDTH);
+    y = fRand( -WIDTH, WIDTH);
+    std::cout<<"randomValidPoint| Point test at x: "<<x<<" y: "<<y<<"\n"<<fflush;
+    collision = collisionTest(a, obst);
+    if(collision==0)
+    {
+       a.x = x;
+       a.y = y;
+       std::cout<<"randomValidPoint| Valid Point found x: "<<x<<" y: "<<y<<"\n";
+       return;
+    }
+    else{std::cout << "randomValidPoint| fail# "<< i << std::endl;}
+  }
+  std::cerr<<"randomValidPointPosition| Failed to find valid point after "<<tries<<" tries. ABORTING.\n";
+  exit(0);
+}
+
+void RRT(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
+{
+  geometry_msgs::Point qRandom, qNear, qNew;
+
+  for(int i=0; i< maxPts; i++)
+  {
+    randomValidPoint(qRandom, obst);
+    std::cout<<"qRandom.x: "<<qRandom.x
+    <<" qRandom.y: "<<qRandom.y<<std::endl;
+  }
+
+}
 
 int main(int argc, char **argv)
 {
+
+  // start random
+  srand(SEED);
+
   ros::init(argc, argv, "ros_demo");
 
   //create a ros handle (pointer) so that you can call and use it
@@ -378,10 +440,7 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
-double journey = pointDistance( GoalPoint.points[0],GoalPoint.points[1]);
-std::cout<<"journey length: "<<journey<< "obst[0].type= "<<obst[0].type;
-bool safe = collisionTest(GoalPoint.points[0], obst);
-std::cout<<"collision? "<<safe;
+  RRT(GoalPoint.points[0], obst, 10, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
 
   /******************** To here, we finished displaying our components **************************/
 
