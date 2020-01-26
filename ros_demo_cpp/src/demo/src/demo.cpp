@@ -33,13 +33,16 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
 
   double x = p.x;
   double y = p.y;
-  double sizeP = 0;
+  double sizeP = 0.2;
+
+  std::cout<<"\ncollisionTest| Read in Point: p.x, p.y: "<< x << "," << y << "\n"<<fflush;
 
   for(int i=0; i<len; i++)
   {
     type = obj[i].type;
     objX = obj[i].pose.position.x;
     objY = obj[i].pose.position.y;
+  std::cout<<"\ncollisionTest| Read in type objX, obY: "<< objX << "," << objY << "\n"<<fflush;
 
     // Check for out of bounds width = 10
     if ( objX >= WIDTH or objY >= WIDTH ) { return (1); }
@@ -48,9 +51,10 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
     {
       case 1 : // Cube
       std::cout<<"\ncollisionTest| CUBE\n";
-      scaleX = obj[i].scale.x / 2.0;
-      scaleY = obj[i].scale.y / 2.0;
-
+      scaleX = obj[i].scale.x; // 2.0;
+      scaleY = obj[i].scale.y; // 2.0;
+      std::cout << "collisionTest| scaleX: "<< scaleX<<" scaleY: "<<scaleY<<"\n"
+      <<"     x: "<< x <<",  objX: "<< objX <<",y: "<< y <<", objY: "<< objY << "\n" << fflush;
       
       // detect if within boundaries
       left = x>= objX - scaleX - sizeP;
@@ -61,22 +65,26 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
       if( left and right and top and bottom )
       {
         collision = 1;
-        std::cout << "collisionTest| Cube collision \n" << fflush;
+        std::cout << "collisionTest| Cube collision: cube center: ("<<objX<<","<<objY<<") cube.scale.x/y:"<<scaleX<<"/"<<scaleY<<"\n"<< fflush;
       }
 
       break;
 
       case 3 : // Cylinder
       std::cout<<"\ncollisionTest| CYL\n";
+      // Get scale and position
       scaleX = obj[i].scale.x / 2.0;
       distX = pow( abs(x-objX) - sizeP , 2);
       distY = pow( abs(y-objY) - sizeP , 2);
       dist = sqrt(distX+distY);
+      std::cout << "collisionTest| distX: "<<distX<<" distY: "<<distY<<") dist:"<<dist<<"\n"
+      <<"     x objX y objY: "<< x <<","<< objX <<","<< y <<","<< objY << "\n" << fflush;
+
 
       if( dist<= scaleX)
       {
         collision = 1;
-        std::cout << "collisionTest| Cyl collision \n" << fflush;
+        std::cout << "collisionTest| CYL collision: cly center: ("<<objX<<","<<objY<<") radius:"<<scaleX<<"\n"<< fflush;
       }
 
       break;
@@ -112,8 +120,8 @@ void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[]
 
   for( int i = 0; i <= tries; i++)
   {
-    x = fRand( -WIDTH, WIDTH);
-    y = fRand( -WIDTH, WIDTH);
+    a.x = fRand( -WIDTH, WIDTH);
+    a.y = fRand( -WIDTH, WIDTH);
     std::cout<<"randomValidPoint| Point test at x: "<<x<<" y: "<<y<<"\n"<<fflush;
     collision = collisionTest(a, obst);
     if(collision==0)
@@ -440,6 +448,7 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
+  
   RRT(GoalPoint.points[0], obst, 10, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
 
   /******************** To here, we finished displaying our components **************************/
