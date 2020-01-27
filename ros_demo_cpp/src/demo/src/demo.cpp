@@ -137,15 +137,14 @@ void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[]
   exit(0);
 }
 
-void RRT(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
+void rrtBuild(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
 {
   geometry_msgs::Point qRandom, qNear, qNew;
 
   for(int i=0; i< maxPts; i++)
   {
     randomValidPoint(qRandom, obst);
-    std::cout<<"qRandom.x: "<<qRandom.x
-    <<" qRandom.y: "<<qRandom.y<<std::endl;
+    
   }
 
 }
@@ -449,7 +448,7 @@ int main(int argc, char **argv)
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
   
-  RRT(GoalPoint.points[0], obst, 10, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
+  rrtBuild(GoalPoint.points[0], obst, 10, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
 
   /******************** To here, we finished displaying our components **************************/
 
