@@ -14,13 +14,21 @@ Last update: 9/10/2019
 
 //Global Controls
 
-const double WIDTH = 10;
+const double WIDTH = 10.0;
 const int SEED = 59073451;
+
+// Rand control
+std::random_device                  rand_dev;
+std::mt19937                        generator(rand_dev());
+
 
 double fRand(double fMin, double fMax)
 {
-    double f = (double)rand() / RAND_MAX;
-    return fMin + f * (fMax - fMin);
+    double f;
+    std::uniform_real_distribution<> dist(fMin,fMax);
+    f = dist(generator);
+    std::cout<<"fRand| f: "<<f<<"\n"<<fflush;
+    return f;
 }
 
 bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
@@ -113,22 +121,18 @@ double pointDistance(geometry_msgs::Point a, geometry_msgs::Point b)
 
 void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[])
 {
-  std::cout<<"randomValidPoint| HIT\n"<<fflush;
   int tries = 100;
-  double x,y;
   bool collision;
 
   for( int i = 0; i <= tries; i++)
   {
     a.x = fRand( -WIDTH, WIDTH);
     a.y = fRand( -WIDTH, WIDTH);
-    std::cout<<"randomValidPoint| Point test at x: "<<x<<" y: "<<y<<"\n"<<fflush;
+    std::cout<<"randomValidPoint| Point test at x: "<<a.x<<" y: "<<a.y<<"\n"<<fflush;
     collision = collisionTest(a, obst);
     if(collision==0)
     {
-       a.x = x;
-       a.y = y;
-       std::cout<<"randomValidPoint| Valid Point found x: "<<x<<" y: "<<y<<"\n";
+       std::cout<<"randomValidPoint| Valid Point found x: "<<a.x<<" y: "<<a.y<<"\n";
        return;
     }
     else{std::cout << "randomValidPoint| fail# "<< i << std::endl;}
@@ -140,6 +144,9 @@ void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[]
 void rrtBuild(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
 {
   geometry_msgs::Point qRandom, qNear, qNew;
+  visualization_msgs::Marker edgelist;
+
+  edgeList.type = visualization_msgs::Marker::LINE_LIST;
 
   for(int i=0; i< maxPts; i++)
   {
@@ -151,10 +158,6 @@ void rrtBuild(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[]
 
 int main(int argc, char **argv)
 {
-
-  // start random
-  srand(SEED);
-
   ros::init(argc, argv, "ros_demo");
 
   //create a ros handle (pointer) so that you can call and use it
