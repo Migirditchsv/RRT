@@ -14,7 +14,9 @@ Last update: 9/10/2019
 
 //Global Controls
 
-const double WIDTH = 10.0;
+const double WIDTH = 10.0; //Width of arena
+const double GRAPH_LINE_WIDTH = 0.2; // width of lines in RRT graph
+const double RANGE = 2.0; // range within which new verticies will auto attempt to connect to stopPoint
 const int SEED = 59073451;
 
 // Rand control
@@ -27,7 +29,7 @@ double fRand(double fMin, double fMax)
     double f;
     std::uniform_real_distribution<> dist(fMin,fMax);
     f = dist(generator);
-    std::cout<<"fRand| f: "<<f<<"\n"<<fflush;
+    //std::cout<<"fRand| f: "<<f<<"\n"<<fflush;
     return f;
 }
 
@@ -43,14 +45,14 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
   double y = p.y;
   double sizeP = 0.2;
 
-  std::cout<<"\ncollisionTest| Read in Point: p.x, p.y: "<< x << "," << y << "\n"<<fflush;
+  //std::cout<<"\ncollisionTest| Read in Point: p.x, p.y: "<< x << "," << y << "\n"<<fflush;
 
   for(int i=0; i<len; i++)
   {
     type = obj[i].type;
     objX = obj[i].pose.position.x;
     objY = obj[i].pose.position.y;
-  std::cout<<"\ncollisionTest| Read in type objX, obY: "<< objX << "," << objY << "\n"<<fflush;
+  //std::cout<<"\ncollisionTest| Read in type objX, obY: "<< objX << "," << objY << "\n"<<fflush;
 
     // Check for out of bounds width = 10
     if ( objX >= WIDTH or objY >= WIDTH ) { return (1); }
@@ -58,11 +60,11 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
     switch(type)
     {
       case 1 : // Cube
-      std::cout<<"\ncollisionTest| CUBE\n";
+      //std::cout<<"\ncollisionTest| CUBE\n";
       scaleX = obj[i].scale.x; // 2.0;
       scaleY = obj[i].scale.y; // 2.0;
-      std::cout << "collisionTest| scaleX: "<< scaleX<<" scaleY: "<<scaleY<<"\n"
-      <<"     x: "<< x <<",  objX: "<< objX <<",y: "<< y <<", objY: "<< objY << "\n" << fflush;
+      //std::cout << "collisionTest| scaleX: "<< scaleX<<" scaleY: "<<scaleY<<"\n"
+      //<<"     x: "<< x <<",  objX: "<< objX <<",y: "<< y <<", objY: "<< objY << "\n" << fflush;
       
       // detect if within boundaries
       left = x>= objX - scaleX - sizeP;
@@ -79,14 +81,14 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
       break;
 
       case 3 : // Cylinder
-      std::cout<<"\ncollisionTest| CYL\n";
+      //std::cout<<"\ncollisionTest| CYL\n";
       // Get scale and position
       scaleX = obj[i].scale.x / 2.0;
       distX = pow( abs(x-objX) - sizeP , 2);
       distY = pow( abs(y-objY) - sizeP , 2);
       dist = sqrt(distX+distY);
-      std::cout << "collisionTest| distX: "<<distX<<" distY: "<<distY<<") dist:"<<dist<<"\n"
-      <<"     x objX y objY: "<< x <<","<< objX <<","<< y <<","<< objY << "\n" << fflush;
+      //std::cout << "collisionTest| distX: "<<distX<<" distY: "<<distY<<") dist:"<<dist<<"\n"
+      //<<"     x objX y objY: "<< x <<","<< objX <<","<< y <<","<< objY << "\n" << fflush;
 
 
       if( dist<= scaleX)
@@ -105,7 +107,7 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
       exit(0);
     }
   }
-  std::cout << "collisionTest| collision: "<< collision << std::endl;
+  //std::cout << "collisionTest| collision: "<< collision << std::endl;
   return(collision);
 }
 
@@ -123,6 +125,7 @@ void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[]
 {
   int tries = 100;
   bool collision;
+  a.z = 0.0; //everything occurs in plane.
 
   for( int i = 0; i <= tries; i++)
   {
@@ -141,16 +144,63 @@ void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[]
   exit(0);
 }
 
+int nearestPointIndx(geometry_msgs::Point a, std::vector<geometry_msgs::Point> pointList)
+{
+  int indx, len = pointList.size();
+  std::cout<<"nearestPointIndx| pointList.size(): "<<len<<"\n"<<fflush;
+  std::vector<double> dist(len);
+  double test;
+
+  for(int i = 0; i < len; i++)
+  {
+    dist[i] = pointDistance( a, pointList[i] );
+    
+  }
+  indx = std::distance(dist.begin(), std::min_element(dist.begin(),dist.end() ) );
+  std::cout<<"nearestPointIndx| indx): "<<indx<<"\n"<<fflush;
+  return(indx);
+}
+
 void rrtBuild(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
 {
-  geometry_msgs::Point qRandom, qNear, qNew;
-  visualization_msgs::Marker edgelist;
-
+  geometry_msgs::Point qRandom, qNear, qNew; // points for feeling out and growing graph
+  std::vector<geometry_msgs::Point> pointList;// pointList for rapidly finding Nearby
+  visualization_msgs::Marker edgeList; // store graph as edgelist, represent data type as list of lines: 1a,1b,2a,2b,...
+  int indx;
   edgeList.type = visualization_msgs::Marker::LINE_LIST;
+  edgeList.scale.x = GRAPH_LINE_WIDTH; // line width is set by x dimension only
+  edgeList.color.g = 1.0; // Graph is green
+  edgeList.color.a = 1.0; // This is probably making it opaque
+
+  edgeList.points.push_back(startPoint); // add startpoint;
+  pointList.push_back(startPoint);
+
 
   for(int i=0; i< maxPts; i++)
   {
-    randomValidPoint(qRandom, obst);
+    randomValidPoint(qRandom, obst); // pick a point not in or clipping an obsticle
+    indx = nearestPointIndx(qRandom, pointList);
+    qNear = pointList[indx];
+    std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qRandom("<<qRandom.x<<","<<qRandom.y<<")\n"<<fflush;
+    //qNew = clippingCheck(qNear, qRandom); // walks along qRandom - qNear vector and clips it if path intersects object
+    
+    /*
+    // add line pair to line_list and point to point list
+    edgeList.push_back( qNear );
+    edgeList.push_back( qNew );
+    pointList.push_back( qNew );
+
+    // If qNew is in range of stopPoint, attempt to connect
+    if( pointDistance(qNew,stopPoint) <= RANGE )
+    {
+      stopCheck = clippingCheck(qNew,stopPoint);
+      if( stopCheck.x == qNew.x and stopCheck.y == qNew.y )
+      {
+        edgeList.push_back(qNew);
+        edgeList.push_back(stopPoint);
+      }
+    }
+    */
     
   }
 
