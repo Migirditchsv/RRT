@@ -14,6 +14,7 @@ Last update: 9/10/2019
 
 //Global Controls
 
+const double EPSILON = 0.2; // clipping check distance
 const double WIDTH = 10.0; //Width of arena
 const double GRAPH_LINE_WIDTH = 0.2; // width of lines in RRT graph
 const double RANGE = 2.0; // range within which new verticies will auto attempt to connect to stopPoint
@@ -162,9 +163,51 @@ int nearestPointIndx(geometry_msgs::Point a, std::vector<geometry_msgs::Point> p
   return(indx);
 }
 
-void rrtBuild(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
+geometry_msgs::Point clippingCheck(geometry_msgs::Point a, geometry_msgs::Point b,visualization_msgs::Marker obj[] )
 {
-  geometry_msgs::Point qRandom, qNear, qNew; // points for feeling out and growing graph
+  geometry_msgs::Point traj; // trajectory from a to b
+  geometry_msgs::Point origin, check; // for math, growing vector
+  double length; // length of traj
+  bool collision;
+  int steps;
+
+  origin.x = 0.0;
+  origin.y = 0.0;
+  origin.z = 0.0;
+  check.x = a.x;
+  check.y = a.y;
+  check.z = 0.0;
+
+  traj.x = b.x - a.x;
+  traj.y = b.y - a.y;
+  traj.z = 0.0; //in plane
+  length =pointDistance(origin, traj);
+  std::cout<<"clippingCheck| length: "<< length<<"\n"<<fflush;
+
+  steps = length / EPSILON;
+
+  for(int i=0; i<steps; i++)
+  {
+
+    // check intersection
+    collision = collisionTest(&check, obj);
+    if( collision ==1 )
+    {
+      std::cout << "clippingCheck| edge intersects. Returning intermediate\n" <<fflush;
+      return(check);
+    }
+    // grow the check vector
+    check.x = i * EPSILON * traj.x;
+    check.y = i * EPSILON * traj.y;
+  }
+
+  return(check);
+
+}
+
+void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
+{
+  geometry_msgs::Point qRandom, qNear, qNew, stopCheck; // points for feeling out and growing graph
   std::vector<geometry_msgs::Point> pointList;// pointList for rapidly finding Nearby
   visualization_msgs::Marker edgeList; // store graph as edgelist, represent data type as list of lines: 1a,1b,2a,2b,...
   int indx;
@@ -183,29 +226,31 @@ void rrtBuild(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[]
     qRandom.y = 1.0;
     qRandom.z = 0.0;
     randomValidPoint(&qRandom, obst); // pick a point not in or clipping an obsticle
-    std::cout<<"rrtBuild| qRandom placed at: ("<<qRandom.x<<","<<qRandom.y<<")\n"<<fflush;
     indx = nearestPointIndx(qRandom, pointList);
     qNear = pointList[indx];
-    std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qRandom("<<qRandom.x<<","<<qRandom.y<<")\n"<<fflush;
-    //qNew = clippingCheck(qNear, qRandom); // walks along qRandom - qNear vector and clips it if path intersects object
+    qNew = clippingCheck(qNear, qRandom, obst); // walks along qRandom - qNear vector and clips it if path intersects object
     
-    /*
+    
     // add line pair to line_list and point to point list
-    edgeList.push_back( qNear );
-    edgeList.push_back( qNew );
+    edgeList.points.push_back( qNear );
+    edgeList.points.push_back( qNew );
+    std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qRandom("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
     pointList.push_back( qNew );
+    std::cout<<"rrtBuild| qNew placed at: ("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
+
 
     // If qNew is in range of stopPoint, attempt to connect
     if( pointDistance(qNew,stopPoint) <= RANGE )
     {
-      stopCheck = clippingCheck(qNew,stopPoint);
+      stopCheck = clippingCheck(qNew,stopPoint,obst);
       if( stopCheck.x == qNew.x and stopCheck.y == qNew.y )
       {
-        edgeList.push_back(qNew);
-        edgeList.push_back(stopPoint);
+        edgeList.points.push_back(qNew);
+        edgeList.points.push_back(stopPoint);
+        std::cout<<"rrtBuild| stopPoint connection made\n"<<fflush;
       }
     }
-    */
+    
     
   }
 
@@ -506,7 +551,7 @@ int main(int argc, char **argv)
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
   
-  rrtBuild(GoalPoint.points[0], obst, 10, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
+  rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, 10, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
 
   /******************** To here, we finished displaying our components **************************/
 

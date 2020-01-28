@@ -110,7 +110,7 @@ if(NOT " " STREQUAL " ")
         message(FATAL_ERROR "Project 'ros_demo' specifies '${idir}' as an include dir, which is not found.  It does not exist in '${include}'.  ${_report}")
       endif()
     else()
-      message(FATAL_ERROR "Project 'ros_demo' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/install/${idir}'.  ${_report}")
+      message(FATAL_ERROR "Project 'ros_demo' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '\${prefix}/${idir}'.  ${_report}")
     endif()
     _list_append_unique(ros_demo_INCLUDE_DIRS ${include})
   endforeach()
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/install/lib;/opt/ros/melodic/lib)
+    foreach(path /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/install/lib;/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/devel/lib;/opt/ros/melodic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
