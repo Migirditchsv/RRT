@@ -33,7 +33,7 @@ double fRand(double fMin, double fMax)
     return f;
 }
 
-bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
+bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
 {
   double scaleX, scaleY, objX, objY, distX, distY, dist;
   bool  right, left, top, bottom, collision = 0;
@@ -41,8 +41,8 @@ bool collisionTest(geometry_msgs::Point p, visualization_msgs::Marker obj[])
 
   int len =  7; // V. bad form but sizeof(a)/sizeof(a[0]) fails
 
-  double x = p.x;
-  double y = p.y;
+  double x = p->x;
+  double y = p->y;
   double sizeP = 0.2;
 
   //std::cout<<"\ncollisionTest| Read in Point: p.x, p.y: "<< x << "," << y << "\n"<<fflush;
@@ -121,21 +121,21 @@ double pointDistance(geometry_msgs::Point a, geometry_msgs::Point b)
   return(dist);
 }
 
-void randomValidPoint( geometry_msgs::Point a, visualization_msgs::Marker obst[])
+void randomValidPoint( geometry_msgs::Point *a, visualization_msgs::Marker obst[])
 {
   int tries = 100;
   bool collision;
-  a.z = 0.0; //everything occurs in plane.
+  a->z = 0.0; //everything occurs in plane.
 
   for( int i = 0; i <= tries; i++)
   {
-    a.x = fRand( -WIDTH, WIDTH);
-    a.y = fRand( -WIDTH, WIDTH);
-    std::cout<<"randomValidPoint| Point test at x: "<<a.x<<" y: "<<a.y<<"\n"<<fflush;
+    a->x = fRand( -WIDTH, WIDTH);
+    a->y = fRand( -WIDTH, WIDTH);
+    std::cout<<"randomValidPoint| Point test at x: "<<a->x<<" y: "<<a->y<<"\n"<<fflush;
     collision = collisionTest(a, obst);
     if(collision==0)
     {
-       std::cout<<"randomValidPoint| Valid Point found x: "<<a.x<<" y: "<<a.y<<"\n";
+       std::cout<<"randomValidPoint| Valid Point found x: "<<a->x<<" y: "<<a->y<<"\n";
        return;
     }
     else{std::cout << "randomValidPoint| fail# "<< i << std::endl;}
@@ -150,6 +150,7 @@ int nearestPointIndx(geometry_msgs::Point a, std::vector<geometry_msgs::Point> p
   std::cout<<"nearestPointIndx| pointList.size(): "<<len<<"\n"<<fflush;
   std::vector<double> dist(len);
   double test;
+  std::cout<<"nearestPointIndx|a.x,y: "<<a.x<<","<<a.y<<"\n"<<fflush;
 
   for(int i = 0; i < len; i++)
   {
@@ -178,7 +179,11 @@ void rrtBuild(geometry_msgs::Point startPoint, visualization_msgs::Marker obst[]
 
   for(int i=0; i< maxPts; i++)
   {
-    randomValidPoint(qRandom, obst); // pick a point not in or clipping an obsticle
+    qRandom.x = 1.0;
+    qRandom.y = 1.0;
+    qRandom.z = 0.0;
+    randomValidPoint(&qRandom, obst); // pick a point not in or clipping an obsticle
+    std::cout<<"rrtBuild| qRandom placed at: ("<<qRandom.x<<","<<qRandom.y<<")\n"<<fflush;
     indx = nearestPointIndx(qRandom, pointList);
     qNear = pointList[indx];
     std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qRandom("<<qRandom.x<<","<<qRandom.y<<")\n"<<fflush;
