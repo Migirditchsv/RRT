@@ -45,7 +45,7 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
 
   double x = p->x;
   double y = p->y;
-  double sizeP = 0.025;
+  double sizeP = 0.25;
 
   //std::cout<<"\ncollisionTest| Read in Point: p.x, p.y: "<< x << "," << y << "\n"<<fflush;
 
@@ -571,10 +571,12 @@ int main(int argc, char **argv)
 
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
-
-  
-  rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
-
+  static bool flag = 0;
+  if( flag == 0)
+  {
+    rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
+    flag =1;
+  }
   /******************** To here, we finished displaying our components **************************/
 
     // check if there is a subscriber. Here our subscriber will be Rviz
