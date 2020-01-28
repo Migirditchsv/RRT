@@ -14,9 +14,10 @@ Last update: 9/10/2019
 
 //Global Controls
 
-const double EPSILON = 0.2; // clipping check distance
-const double WIDTH = 10.0; //Width of arena
-const double GRAPH_LINE_WIDTH = 0.2; // width of lines in RRT graph
+const int MAX_PTS = 4000; //# of rrt edges
+const double EPSILON = 0.002; // clipping check distance
+const double WIDTH = 5.0; //Width of arena
+const double GRAPH_LINE_WIDTH = 0.02; // width of lines in RRT graph
 const double RANGE = 2.0; // range within which new verticies will auto attempt to connect to stopPoint
 const int SEED = 59073451;
 
@@ -44,7 +45,7 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
 
   double x = p->x;
   double y = p->y;
-  double sizeP = 0.2;
+  double sizeP = 0.025;
 
   //std::cout<<"\ncollisionTest| Read in Point: p.x, p.y: "<< x << "," << y << "\n"<<fflush;
 
@@ -62,21 +63,21 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
     {
       case 1 : // Cube
       //std::cout<<"\ncollisionTest| CUBE\n";
-      scaleX = obj[i].scale.x; // 2.0;
-      scaleY = obj[i].scale.y; // 2.0;
+      scaleX = obj[i].scale.x / 2.0;
+      scaleY = obj[i].scale.y / 2.0;
       //std::cout << "collisionTest| scaleX: "<< scaleX<<" scaleY: "<<scaleY<<"\n"
       //<<"     x: "<< x <<",  objX: "<< objX <<",y: "<< y <<", objY: "<< objY << "\n" << fflush;
       
       // detect if within boundaries
-      left = x>= objX - scaleX - sizeP;
-      right = x<= objX + scaleX + sizeP;
-      bottom = x >=objY - scaleY - sizeP;
-      top = x<= objY - scaleY -sizeP;
-
+      left = x >= objX - scaleX - sizeP;
+      right = x <= objX + scaleX + sizeP;
+      bottom = y >= objY - scaleY - sizeP;
+      top = y <= objY + scaleY + sizeP;
+      std::cout << "collisionTest| Cube bound Check| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") top: "<<top<<" bottom: "<<bottom<<" left: "<<left<<" right: "<<right<<"\n"<< fflush;
       if( left and right and top and bottom )
       {
         collision = 1;
-        std::cout << "collisionTest| Cube collision: cube center: ("<<objX<<","<<objY<<") cube.scale.x/y:"<<scaleX<<"/"<<scaleY<<"\n"<< fflush;
+        std::cout << "collisionTest| Cube collision| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") cube.scale.x/y:"<<scaleX<<"/"<<scaleY<<"\n"<< fflush;
       }
 
       break;
@@ -85,17 +86,19 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
       //std::cout<<"\ncollisionTest| CYL\n";
       // Get scale and position
       scaleX = obj[i].scale.x / 2.0;
+      //std::cout << "collisionTest| 0x= "<<x<<"\n"<<fflush;
       distX = pow( abs(x-objX) - sizeP , 2);
       distY = pow( abs(y-objY) - sizeP , 2);
       dist = sqrt(distX+distY);
-      //std::cout << "collisionTest| distX: "<<distX<<" distY: "<<distY<<") dist:"<<dist<<"\n"
+      //std::cout << "collisionTest| 1x= "<<x<<"\n"<<fflush;
+      //std::cout << "collisionTest| object: "<<i<<" distX: "<<distX<<" distY: "<<distY<<") dist:"<<dist<<"\n"
       //<<"     x objX y objY: "<< x <<","<< objX <<","<< y <<","<< objY << "\n" << fflush;
 
 
       if( dist<= scaleX)
       {
         collision = 1;
-        std::cout << "collisionTest| CYL collision: cly center: ("<<objX<<","<<objY<<") radius:"<<scaleX<<"\n"<< fflush;
+        std::cout << "collisionTest| CYL collision| object #: "<<i<<" cly center: ("<<objX<<","<<objY<<") radius:"<<scaleX<<"\n"<< fflush;
       }
 
       break;
@@ -167,7 +170,7 @@ geometry_msgs::Point clippingCheck(geometry_msgs::Point a, geometry_msgs::Point 
 {
   geometry_msgs::Point traj; // trajectory from a to b
   geometry_msgs::Point origin, check; // for math, growing vector
-  double length; // length of traj
+  double length, scale; // length of traj, scales of x y
   bool collision;
   int steps;
 
@@ -184,29 +187,33 @@ geometry_msgs::Point clippingCheck(geometry_msgs::Point a, geometry_msgs::Point 
   length =pointDistance(origin, traj);
   std::cout<<"clippingCheck| length: "<< length<<"\n"<<fflush;
 
+   
   steps = length / EPSILON;
 
   for(int i=0; i<steps; i++)
   {
-
+    scale = ((double)i / (double)steps);
     // check intersection
     collision = collisionTest(&check, obj);
     if( collision ==1 )
     {
-      std::cout << "clippingCheck| edge intersects. Returning intermediate\n" <<fflush;
+      std::cout << "clippingCheck| edge intersects. Returning intermediatept at ("<<check.x<<","<<check.y<<")\n" <<fflush;
       return(check);
     }
     // grow the check vector
-    check.x = i * EPSILON * traj.x;
-    check.y = i * EPSILON * traj.y;
+    check.x =  scale * traj.x + a.x;
+    check.y =  scale * traj.y + a.y;
+    std::cout << "clippingCheck| step: "<<i<<" check at ("<<check.x<<","<<check.y<<")\n" <<fflush;
   }
-
+  std::cout << "clippingCheck| VALID EDGE. Returning pt at ("<<check.x<<","<<check.y<<")\n" <<fflush;
   return(check);
 
 }
 
-void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, visualization_msgs::Marker obst[], int maxPts, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
+void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, visualization_msgs::Marker obst[], ros::Publisher drawToRviz, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
 {
+
+  std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"<<fflush;
   geometry_msgs::Point qRandom, qNear, qNew, stopCheck; // points for feeling out and growing graph
   std::vector<geometry_msgs::Point> pointList;// pointList for rapidly finding Nearby
   visualization_msgs::Marker edgeList; // store graph as edgelist, represent data type as list of lines: 1a,1b,2a,2b,...
@@ -216,11 +223,11 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   edgeList.color.g = 1.0; // Graph is green
   edgeList.color.a = 1.0; // This is probably making it opaque
 
-  edgeList.points.push_back(startPoint); // add startpoint;
+  //edgeList.points.push_back(startPoint); // add startpoint;
   pointList.push_back(startPoint);
 
 
-  for(int i=0; i< maxPts; i++)
+  for(int i=0; i< MAX_PTS; i++)
   {
     qRandom.x = 1.0;
     qRandom.y = 1.0;
@@ -234,7 +241,7 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     // add line pair to line_list and point to point list
     edgeList.points.push_back( qNear );
     edgeList.points.push_back( qNew );
-    std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qRandom("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
+    std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qNew("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
     pointList.push_back( qNew );
     std::cout<<"rrtBuild| qNew placed at: ("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
 
@@ -251,8 +258,23 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
       }
     }
     
-    
   }
+    //std::cout<<"rrtBuild| pointLIst: "<<edgeList<<"\n"<<fflush;
+    edgeList.header.frame_id = "map"; //NOTE: this should be "paired" to the frame_id entry in Rviz
+    edgeList.header.stamp = ros::Time::now();
+
+    // Set the namespace and id
+    edgeList.ns = "graph";
+    edgeList.id = 99;
+
+    // Set the marker action
+    edgeList.action = visualization_msgs::Marker::ADD;
+
+
+    edgeList.lifetime = ros::Duration();
+
+  //std::cout << "rrtBuild| edgelist: "<<edgeList<<"\n"<< fflush;
+  drawToRviz.publish(edgeList);
 
 }
 
@@ -551,7 +573,7 @@ int main(int argc, char **argv)
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
   
-  rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, 10, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
+  rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
 
   /******************** To here, we finished displaying our components **************************/
 
