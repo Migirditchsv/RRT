@@ -14,16 +14,22 @@ Last update: 9/10/2019
 
 //Global Controls
 
-const int MAX_PTS = 4000; //# of rrt edges
-const double EPSILON = 0.002; // clipping check distance
+const int MAX_PTS = 2000; //# of rrt edges
+const double EPSILON = 0.01; // clipping check distance
 const double WIDTH = 5.0; //Width of arena
 const double GRAPH_LINE_WIDTH = 0.02; // width of lines in RRT graph
-const double RANGE = 2.0; // range within which new verticies will auto attempt to connect to stopPoint
+const double RANGE = 1.0; // range within which new verticies will auto attempt to connect to stopPoint
 const int SEED = 59073451;
 
 // Rand control
 std::random_device                  rand_dev;
 std::mt19937                        generator(rand_dev());
+
+struct graphInfo
+{
+  std::vector<geometry_msgs::Point> pointList;
+  visualization_msgs::Marker edgeList;
+};
 
 
 double fRand(double fMin, double fMax)
@@ -210,7 +216,7 @@ geometry_msgs::Point clippingCheck(geometry_msgs::Point a, geometry_msgs::Point 
 
 }
 
-void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, visualization_msgs::Marker obst[], ros::Publisher drawToRviz, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
+void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, visualization_msgs::Marker obst[], ros::Publisher draw_pub, ros::Publisher planning_pub, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
 {
 
   std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"<<fflush;
@@ -274,8 +280,17 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     edgeList.lifetime = ros::Duration();
 
   //std::cout << "rrtBuild| edgelist: "<<edgeList<<"\n"<< fflush;
-  drawToRviz.publish(edgeList);
+  draw_pub.publish(edgeList);
 
+  graphInfo graph(pointList, edgeList);
+
+  planning_pub.publish( graph );
+
+}
+
+void dijkstra()
+{
+  
 }
 
 int main(int argc, char **argv)
@@ -571,10 +586,15 @@ int main(int argc, char **argv)
 
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
+  
   static bool flag = 0;
   if( flag == 0)
   {
-    rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
+    // init publisher
+    ros::Publisher planning_pub = n.advertise<visualization_msgs::Marker>("path_planning", 10);
+    // init subscriber
+    ros::Subscriber planning_sub = n.subscribe("path_planning", 10, chatterCallback);
+    rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, planning_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
     flag =1;
   }
   /******************** To here, we finished displaying our components **************************/
