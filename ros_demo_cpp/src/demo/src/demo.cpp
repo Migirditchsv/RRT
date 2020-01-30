@@ -12,6 +12,8 @@ Last update: 9/10/2019
 #include <random>
 #include <iterator>
 
+int fuckup[] = {0,0,0,0,0,0,0,0};
+
 //Global Controls
 
 const int MAX_PTS = 2000; //# of rrt edges
@@ -50,21 +52,21 @@ double fRand(double fMin, double fMax)
 
 bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
 {
-  double scaleX, scaleY, objX, objY, distX, distY, dist;
+  double scaleX, scaleY, objX, objY, distX, distY, dist, hold;
   bool  right, left, top, bottom, collision = 0;
   int type;
 
-  int len = sizeof(&obj)/sizeof(obj[0]);
+  int len = sizeof(obj);
   std::cout<<"\ncollisionTest| obj array length: "<< len << std::endl;
 
 
   double x = p->x;
   double y = p->y;
-  double sizeP = 0.25;
+  double sizeP = 0.2;
 
   //std::cout<<"\ncollisionTest| Read in Point: p.x, p.y: "<< x << "," << y << "\n"<<fflush;
 
-  for(int i=0; i<len; i++)
+  for(int i=0; i<len-1; i++)
   {
     type = obj[i].type;
     objX = obj[i].pose.position.x;
@@ -77,22 +79,35 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
     switch(type)
     {
       case 1 : // Cube
-      //std::cout<<"\ncollisionTest| CUBE\n";
+      
       scaleX = obj[i].scale.x / 2.0;
       scaleY = obj[i].scale.y / 2.0;
-      //std::cout << "collisionTest| scaleX: "<< scaleX<<" scaleY: "<<scaleY<<"\n"
-      //<<"     x: "<< x <<",  objX: "<< objX <<",y: "<< y <<", objY: "<< objY << "\n" << fflush;
-      
-      // detect if within boundaries
-      left = x >= objX - scaleX - sizeP;
-      right = x <= objX + scaleX + sizeP;
-      bottom = y >= objY - scaleY - sizeP;
-      top = y <= objY + scaleY + sizeP;
-      std::cout << "collisionTest| Cube bound Check| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") top: "<<top<<" bottom: "<<bottom<<" left: "<<left<<" right: "<<right<<"\n"<< fflush;
+      if( obj[i].pose.orientation.w!=0.0)
+      {
+        //hold = scaleX;
+        scaleX = 4.0;
+        scaleY = 0.5;
+      }
+      //std::cout << "collisionTest| Cube object #: "<<i<<" Volume: "<< volume<< std::endl;
+
+      right = x < objX + scaleX;
+      left = x > objX - scaleX;
+      top = y < objY + scaleY;
+      bottom = y > objY -scaleY;
+
+
+      //std::cout << "collisionTest| Cube bound Check| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") top: "<<top<<" bottom: "<<bottom<<" left: "<<left<<" right: "<<right<<"\n"<< fflush;
       if( left and right and top and bottom )
       {
+        fuckup[i] += 1;// count which object is fucking up most.
         collision = 1;
-        std::cout << "collisionTest| Cube collision| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") cube.scale.x/y:"<<scaleX<<"/"<<scaleY<<"\n"<< fflush;
+        std::cout << "\n\n\ncollisionTest| Cube collision| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<
+        "), cube scale (x,y): "<< scaleX<<","<<scaleY<<") x: "<<x<<", y: "<< y <<"\n\n\n"<< fflush;
+        /*if(x>-1.25)
+        {
+          std::cout << "\n\n\ncollisionTest| !!THE ZONE!!| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") cube.scale.(x,y): ("
+          <<scaleX<<"."<<scaleY<<") x: "<<x<<", y: "<< y <<"\n\n\n"<<fflush;
+        }*/
       }
 
       break;
@@ -294,6 +309,11 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   //planning_pub.publish( graph );
   graph.pointList = pointList;
   graph.edgeList = edgeList;
+
+  for( int i =0; i<8; i++)
+  {
+  std::cout<<"rrtBuild| fuckup["<<i<<"]: "<<fuckup[i]<<std::endl;
+  }
 
 }
 
