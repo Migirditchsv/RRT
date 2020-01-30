@@ -29,8 +29,15 @@ struct graphInfo
 {
   std::vector<geometry_msgs::Point> pointList;
   visualization_msgs::Marker edgeList;
+  // constructor
+  /*graphInfo(std::vector<geometry_msgs::Point> pL, visualization_msgs::Marker eL)
+  {
+    pointList = pL;
+    edgeList = eL;
+  }*/
 };
 
+graphInfo graph;
 
 double fRand(double fMin, double fMax)
 {
@@ -47,7 +54,9 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
   bool  right, left, top, bottom, collision = 0;
   int type;
 
-  int len =  7; // V. bad form but sizeof(a)/sizeof(a[0]) fails
+  int len = sizeof(&obj)/sizeof(obj[0]);
+  std::cout<<"\ncollisionTest| obj array length: "<< len << std::endl;
+
 
   double x = p->x;
   double y = p->y;
@@ -216,7 +225,7 @@ geometry_msgs::Point clippingCheck(geometry_msgs::Point a, geometry_msgs::Point 
 
 }
 
-void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, visualization_msgs::Marker obst[], ros::Publisher draw_pub, ros::Publisher planning_pub, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
+void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, visualization_msgs::Marker obst[], ros::Publisher draw_pub, double epsilon)// maxpts to use in search, epsilon smallest clipping distance
 {
 
   std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"<<fflush;
@@ -282,9 +291,9 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   //std::cout << "rrtBuild| edgelist: "<<edgeList<<"\n"<< fflush;
   draw_pub.publish(edgeList);
 
-  graphInfo graph(pointList, edgeList);
-
-  planning_pub.publish( graph );
+  //planning_pub.publish( graph );
+  graph.pointList = pointList;
+  graph.edgeList = edgeList;
 
 }
 
@@ -591,12 +600,19 @@ int main(int argc, char **argv)
   if( flag == 0)
   {
     // init publisher
-    ros::Publisher planning_pub = n.advertise<visualization_msgs::Marker>("path_planning", 10);
+    //ros::Publisher planning_pub = n.advertise<graphInfo>("path_planning", 10);
     // init subscriber
-    ros::Subscriber planning_sub = n.subscribe("path_planning", 10, chatterCallback);
-    rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, planning_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
+    //ros::Subscriber planning_sub = n.subscribe("path_planning", 10, planningCallback); //<graphInfo>("path_planning", 10, planningCallback);
+    // build a tree
+    rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
+    // Dijkstra shortest path from start to fin.
+    // Code here
+    // Pop to start point
     flag =1;
   }
+
+  // Follow Path 
+  // code here
   /******************** To here, we finished displaying our components **************************/
 
     // check if there is a subscriber. Here our subscriber will be Rviz
