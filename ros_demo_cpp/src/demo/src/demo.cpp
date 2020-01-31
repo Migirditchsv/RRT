@@ -16,7 +16,7 @@ int fuckup[] = {0,0,0,0,0,0,0,0};
 
 //Global Controls
 
-const int MAX_PTS = 2000; //# of rrt edges
+const int MAX_PTS = 10000; //# of rrt edges
 const double EPSILON = 0.01; // clipping check distance
 const double WIDTH = 5.0; //Width of arena
 const double GRAPH_LINE_WIDTH = 0.02; // width of lines in RRT graph
@@ -82,11 +82,11 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
       
       scaleX = obj[i].scale.x / 2.0;
       scaleY = obj[i].scale.y / 2.0;
-      if( obj[i].pose.orientation.w!=0.0)
+      if( obj[i].pose.orientation.w!=1.0)
       {
         //hold = scaleX;
-        scaleX = 4.0;
-        scaleY = 0.5;
+        scaleX = 2.5;
+        scaleY = 0.3;
       }
       //std::cout << "collisionTest| Cube object #: "<<i<<" Volume: "<< volume<< std::endl;
 
