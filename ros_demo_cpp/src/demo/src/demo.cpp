@@ -289,6 +289,9 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     }
   }
   stop: //from goto stop; connection made to stoppoint.
+
+  // add stop point as last member of pointList
+  pointList.push_back(stopPoint);
     //std::cout<<"rrtBuild| pointLIst: "<<edgeList<<"\n"<<fflush;
     edgeList.header.frame_id = "map"; //NOTE: this should be "paired" to the frame_id entry in Rviz
     edgeList.header.stamp = ros::Time::now();
@@ -319,7 +322,25 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
 
 void dijkstra()
 {
+  std::vector<geometry_msgs::Point> pointList = graph.pointList;
+  std::vector<geometry_msgs::Point> visited, unvisited(pointList);// unvisit as constructor taking ptlist
+  visualization_msgs::Marker edgeList = graph.edgeList;
+
+  int graphSize = sizeof(pointList);
+  double dist[graphSize]; // dist between corresponding pointlist member and stopPoint.
+  bool sptSet[graphSize]; // if T, corresponding member of pointList is in spt
+
+  // initialize distances to inf and sptSet
+  for( int i = 0; i< graphSize-1; i++)
+  {
+    dist[i] = INT_MAX;
+    sptSet[i] = false;
+  }
+  dist[graphSize-1] = 0.0;//stopPoint is at itself.
+
   
+
+
 }
 
 int main(int argc, char **argv)
@@ -626,6 +647,7 @@ int main(int argc, char **argv)
     // build a tree
     rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
     // Dijkstra shortest path from start to fin.
+    dijkstra();
     // Code here
     // Pop to start point
     flag =1;

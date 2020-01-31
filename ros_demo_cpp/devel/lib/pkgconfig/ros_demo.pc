@@ -4,5 +4,5 @@ Name: ros_demo
 Description: Description of ros_demo
 Version: 0.0.0
 Cflags: 
-Libs: -L/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/devel/lib 
+Libs: -L${prefix}/lib 
 Requires: 
