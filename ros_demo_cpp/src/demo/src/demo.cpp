@@ -16,7 +16,7 @@ int fuckup[] = {0,0,0,0,0,0,0,0};
 
 //Global Controls
 
-const int MAX_PTS = 10000; //# of rrt edges
+const int MAX_PTS = 20000; //# of rrt edges
 const double EPSILON = 0.01; // clipping check distance
 const double WIDTH = 5.0; //Width of arena
 const double GRAPH_LINE_WIDTH = 0.02; // width of lines in RRT graph
@@ -57,7 +57,7 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
   int type;
 
   int len = sizeof(obj);
-  std::cout<<"\ncollisionTest| obj array length: "<< len << std::endl;
+  //std::cout<<"\ncollisionTest| obj array length: "<< len << std::endl;
 
 
   double x = p->x;
@@ -101,8 +101,8 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
       {
         fuckup[i] += 1;// count which object is fucking up most.
         collision = 1;
-        std::cout << "\n\n\ncollisionTest| Cube collision| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<
-        "), cube scale (x,y): "<< scaleX<<","<<scaleY<<") x: "<<x<<", y: "<< y <<"\n\n\n"<< fflush;
+        //std::cout << "\n\n\ncollisionTest| Cube collision| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<
+        //"), cube scale (x,y): "<< scaleX<<","<<scaleY<<") x: "<<x<<", y: "<< y <<"\n\n\n"<< fflush;
         /*if(x>-1.25)
         {
           std::cout << "\n\n\ncollisionTest| !!THE ZONE!!| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") cube.scale.(x,y): ("
@@ -128,7 +128,7 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
       if( dist<= scaleX)
       {
         collision = 1;
-        std::cout << "collisionTest| CYL collision| object #: "<<i<<" cly center: ("<<objX<<","<<objY<<") radius:"<<scaleX<<"\n"<< fflush;
+        //std::cout << "collisionTest| CYL collision| object #: "<<i<<" cly center: ("<<objX<<","<<objY<<") radius:"<<scaleX<<"\n"<< fflush;
       }
 
       break;
@@ -165,26 +165,26 @@ void randomValidPoint( geometry_msgs::Point *a, visualization_msgs::Marker obst[
   {
     a->x = fRand( -WIDTH, WIDTH);
     a->y = fRand( -WIDTH, WIDTH);
-    std::cout<<"randomValidPoint| Point test at x: "<<a->x<<" y: "<<a->y<<"\n"<<fflush;
+    //std::cout<<"randomValidPoint| Point test at x: "<<a->x<<" y: "<<a->y<<"\n"<<fflush;
     collision = collisionTest(a, obst);
     if(collision==0)
     {
-       std::cout<<"randomValidPoint| Valid Point found x: "<<a->x<<" y: "<<a->y<<"\n";
+       //std::cout<<"randomValidPoint| Valid Point found x: "<<a->x<<" y: "<<a->y<<"\n";
        return;
     }
-    else{std::cout << "randomValidPoint| fail# "<< i << std::endl;}
+    else{}//std::cout << "randomValidPoint| fail# "<< i << std::endl;}
   }
-  std::cerr<<"randomValidPointPosition| Failed to find valid point after "<<tries<<" tries. ABORTING.\n";
+  //std::cerr<<"randomValidPointPosition| Failed to find valid point after "<<tries<<" tries. ABORTING.\n";
   exit(0);
 }
 
 int nearestPointIndx(geometry_msgs::Point a, std::vector<geometry_msgs::Point> pointList)
 {
   int indx, len = pointList.size();
-  std::cout<<"nearestPointIndx| pointList.size(): "<<len<<"\n"<<fflush;
+  //std::cout<<"nearestPointIndx| pointList.size(): "<<len<<"\n"<<fflush;
   std::vector<double> dist(len);
   double test;
-  std::cout<<"nearestPointIndx|a.x,y: "<<a.x<<","<<a.y<<"\n"<<fflush;
+  //std::cout<<"nearestPointIndx|a.x,y: "<<a.x<<","<<a.y<<"\n"<<fflush;
 
   for(int i = 0; i < len; i++)
   {
@@ -192,7 +192,7 @@ int nearestPointIndx(geometry_msgs::Point a, std::vector<geometry_msgs::Point> p
     
   }
   indx = std::distance(dist.begin(), std::min_element(dist.begin(),dist.end() ) );
-  std::cout<<"nearestPointIndx| indx): "<<indx<<"\n"<<fflush;
+  //std::cout<<"nearestPointIndx| indx): "<<indx<<"\n"<<fflush;
   return(indx);
 }
 
@@ -215,7 +215,7 @@ geometry_msgs::Point clippingCheck(geometry_msgs::Point a, geometry_msgs::Point 
   traj.y = b.y - a.y;
   traj.z = 0.0; //in plane
   length =pointDistance(origin, traj);
-  std::cout<<"clippingCheck| length: "<< length<<"\n"<<fflush;
+  //std::cout<<"clippingCheck| length: "<< length<<"\n"<<fflush;
 
    
   steps = length / EPSILON;
@@ -233,9 +233,9 @@ geometry_msgs::Point clippingCheck(geometry_msgs::Point a, geometry_msgs::Point 
     // grow the check vector
     check.x =  scale * traj.x + a.x;
     check.y =  scale * traj.y + a.y;
-    std::cout << "clippingCheck| step: "<<i<<" check at ("<<check.x<<","<<check.y<<")\n" <<fflush;
+    //std::cout << "clippingCheck| step: "<<i<<" check at ("<<check.x<<","<<check.y<<")\n" <<fflush;
   }
-  std::cout << "clippingCheck| VALID EDGE. Returning pt at ("<<check.x<<","<<check.y<<")\n" <<fflush;
+  //std::cout << "clippingCheck| VALID EDGE. Returning pt at ("<<check.x<<","<<check.y<<")\n" <<fflush;
   return(check);
 
 }
@@ -271,24 +271,24 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     // add line pair to line_list and point to point list
     edgeList.points.push_back( qNear );
     edgeList.points.push_back( qNew );
-    std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qNew("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
+    //std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qNew("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
     pointList.push_back( qNew );
-    std::cout<<"rrtBuild| qNew placed at: ("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
-
+    //std::cout<<"rrtBuild| qNew placed at: ("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
 
     // If qNew is in range of stopPoint, attempt to connect
     if( pointDistance(qNew,stopPoint) <= RANGE )
     {
       stopCheck = clippingCheck(qNew,stopPoint,obst);
-      if( stopCheck.x == qNew.x and stopCheck.y == qNew.y )
+      if( pointDistance(qNew, stopCheck) <= EPSILON) //stopCheck.x == qNew.x and stopCheck.y == qNew.y )
       {
         edgeList.points.push_back(qNew);
         edgeList.points.push_back(stopPoint);
-        std::cout<<"rrtBuild| stopPoint connection made\n"<<fflush;
+        std::cout<<"rrtBuild| stopPoint connection made\n TERMINATING TREE GROWTH\n\n"<<fflush;
+        goto stop;
       }
     }
-    
   }
+  stop: //from goto stop; connection made to stoppoint.
     //std::cout<<"rrtBuild| pointLIst: "<<edgeList<<"\n"<<fflush;
     edgeList.header.frame_id = "map"; //NOTE: this should be "paired" to the frame_id entry in Rviz
     edgeList.header.stamp = ros::Time::now();
