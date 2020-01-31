@@ -56,7 +56,7 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
     objY = obj[i].pose.position.y;
   //std::cout<<"\ncollisionTest| Read in type objX, obY: "<< objX << "," << objY << "\n"<<fflush;
 
-    // Check for out of bounds width = 10
+    // Check for out of bounds width = 10 / 2 = 5
     if ( objX >= WIDTH or objY >= WIDTH ) { return (1); }
 
     switch(type)
@@ -65,8 +65,7 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
       //std::cout<<"\ncollisionTest| CUBE\n";
       scaleX = obj[i].scale.x / 2.0;
       scaleY = obj[i].scale.y / 2.0;
-      //std::cout << "collisionTest| scaleX: "<< scaleX<<" scaleY: "<<scaleY<<"\n"
-      //<<"     x: "<< x <<",  objX: "<< objX <<",y: "<< y <<", objY: "<< objY << "\n" << fflush;
+      std::cout << "collisionTest| scaleX: "<< scaleX<<" scaleY: "<<scaleY<<"\n"<< fflush;
       
       // detect if within boundaries
       left = x >= objX - scaleX - sizeP;
@@ -74,7 +73,7 @@ bool collisionTest(geometry_msgs::Point *p, visualization_msgs::Marker obj[])
       bottom = y >= objY - scaleY - sizeP;
       top = y <= objY + scaleY + sizeP;
       std::cout << "collisionTest| Cube bound Check| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") top: "<<top<<" bottom: "<<bottom<<" left: "<<left<<" right: "<<right<<"\n"<< fflush;
-      if( left and right and top and bottom )
+      if( (left && right) && (top && bottom) )
       {
         collision = 1;
         std::cout << "collisionTest| Cube collision| object #: "<<i<<" cube center: ("<<objX<<","<<objY<<") cube.scale.x/y:"<<scaleX<<"/"<<scaleY<<"\n"<< fflush;
@@ -275,6 +274,13 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
 
   //std::cout << "rrtBuild| edgelist: "<<edgeList<<"\n"<< fflush;
   drawToRviz.publish(edgeList);
+
+}
+
+void dijkstra(geometry_msgs::Point start, geometry_msgs::Point stop)
+{
+  // read in from planning topic
+  ros::Subscribe planning_sub = n.advertise<visualization_msgs::Marker>("course_planning", 10);
 
 }
 
