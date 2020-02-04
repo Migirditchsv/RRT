@@ -30,75 +30,8 @@ const int SEED = 59073451;
 std::random_device                  rand_dev;
 std::mt19937                        generator(rand_dev());
 
-// This class represents a directed graph using 
-// adjacency list representation 
-class Graph  // graph and bfs stolen from geeks 4 geeks
-{ 
-    int V;    // No. of vertices 
-  
-    // Pointer to an array containing adjacency 
-    // lists 
-    list<int> *adj;    
-public: 
-    Graph(int V);  // Constructor 
-  
-    // function to add an edge to graph 
-    void addEdge(int v, int w);  
-  
-    // prints BFS traversal from a given source s 
-    void BFS(int s);   
-}; 
-
-  
-Graph::Graph(int V) 
-{ 
-    this->V = V; 
-    adj = new list<int>[V]; 
-} 
-  
-void Graph::addEdge(int v, int w) 
-{ 
-    adj[v].push_back(w); // Add w to v’s list. 
-} 
-  
-void Graph::BFS(int s) 
-{ 
-    // Mark all the vertices as not visited 
-    bool *visited = new bool[V]; 
-    for(int i = 0; i < V; i++) 
-        visited[i] = false; 
-  
-    // Create a queue for BFS 
-    list<int> queue; 
-  
-    // Mark the current node as visited and enqueue it 
-    visited[s] = true; 
-    queue.push_back(s); 
-  
-    // 'i' will be used to get all adjacent 
-    // vertices of a vertex 
-    list<int>::iterator i; 
-  
-    while(!queue.empty()) 
-    { 
-        // Dequeue a vertex from queue and print it 
-        s = queue.front(); 
-        cout << s << " "; 
-        queue.pop_front(); 
-  
-        // Get all adjacent vertices of the dequeued 
-        // vertex s. If a adjacent has not been visited,  
-        // then mark it visited and enqueue it 
-        for (i = adj[s].begin(); i != adj[s].end(); ++i) 
-        { 
-            if (!visited[*i]) 
-            { 
-                visited[*i] = true; 
-                queue.push_back(*i); 
-            } 
-        } 
-    } 
-} 
+//indxEdgeList
+vector<vector<int>> indxEdgeList;
 
 struct rrtInfo
 {
@@ -320,20 +253,30 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
 
   std::cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"<<fflush;
   geometry_msgs::Point qRandom, qNear, qNew, stopCheck; // points for feeling out and growing graph
-  std::vector<geometry_msgs::Point> pointList;// pointList for rapidly finding Nearby
+  std::vector<geometry_msgs::Point> pointList;// pointList for rapidly finding Nearby first 2 pts are start and stop
   visualization_msgs::Marker edgeList; // store graph as edgelist, represent data type as list of lines: 1a,1b,2a,2b,...
-  vector<int> indxEdgeList; // pointlist indicies of edges in (1a,1b, 2a, 2b) format
   int indx;
+
   edgeList.type = visualization_msgs::Marker::LINE_LIST;
   edgeList.scale.x = GRAPH_LINE_WIDTH; // line width is set by x dimension only
   edgeList.color.g = 1.0; // Graph is green
   edgeList.color.a = 1.0; // This is probably making it opaque
 
+  std::cout<<"rrtBuild| *********FLAG1***********"<<endl;
+
+
   //edgeList.points.push_back(startPoint); // add startpoint;
   pointList.push_back(startPoint);
+  indxEdgeList.push_back( vector<int>() );// iEL[0] is start point, push back empty vec
+  std::cout<<"rrtBuild| *********FLAG2***********"<<endl;
+  pointList.push_back(stopPoint);
+  indxEdgeList.push_back( vector<int>() );// iEL[1] is start point, push back empty vec
+  std::cout<<"rrtBuild| *********FLAG3***********"<<endl;
 
 
-  for(int i=0; i< MAX_PTS; i++)
+
+
+  for(int i=2; i< MAX_PTS; i++)
   {
     // point positions must be initialized
     qRandom.x = 0.0;
@@ -341,7 +284,7 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     qRandom.z = 0.0;
     // pick a point not in or clipping an obsticle
     randomValidPoint(&qRandom, obst);
-    nearIndx = nearestPointIndx(qRandom, pointList);
+    int nearIndx = nearestPointIndx(qRandom, pointList);
     qNear = pointList[nearIndx];
     // walks along qRandom - qNear vector and clip it if path intersects object
     qNew = clippingCheck(qNear, qRandom, obst);
@@ -352,9 +295,19 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     //std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qNew("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
     pointList.push_back( qNew );
     //std::cout<<"rrtBuild| qNew placed at: ("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
-    int newIndx = sizeof(pointlist) - 1; // indx of newest pt 
-    indxEdgeList.push_back(nearIndx);
-    indexEdgeList.push_back(newIndx);
+    int newIndx = sizeof(pointList) - 1; // indx of newest pt 
+
+    std::cout<<"rrtBuild| *********FLAG 4***********"<<endl;
+
+    indxEdgeList[nearIndx].push_back(newIndx); // push new point onto edgelist of nearest
+   
+    std::cout<<"rrtBuild| *********FLAG 5***********"<<endl;
+
+   
+    indxEdgeList.push_back( vector<int>() ); // push a new row onto iEL for newIndex
+
+    std::cout<<"rrtBuild| *********FLAG 6***********"<<endl;
+
 
     // If qNew is in range of stopPoint, attempt to connect
     if( pointDistance(qNew,stopPoint) <= RANGE )
@@ -362,8 +315,18 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
       stopCheck = clippingCheck(qNew,stopPoint,obst);
       if( pointDistance(qNew, stopCheck) <= EPSILON) //stopCheck.x == qNew.x and stopCheck.y == qNew.y )
       {
+        // save to rviz object
         edgeList.points.push_back(qNew);
         edgeList.points.push_back(stopPoint);
+        // save to indexEdgeList
+        
+        std::cout<<"rrtBuild| *********FLAG 7*********** \n iEL["<<newIndx<<"/"<<sizeof(indxEdgeList)
+        <<") = "<<endl;
+        
+        indxEdgeList[newIndx].push_back(1); // 1 is indx of stoppoint
+        
+        std::cout<<"rrtBuild| *********FLAG 8***********"<<endl;
+        
         std::cout<<"rrtBuild| stopPoint connection made\n TERMINATING TREE GROWTH\n\n"<<fflush;
         goto stop;
       }
@@ -373,19 +336,19 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
 
   // add stop point as last member of pointList
   pointList.push_back(stopPoint);
-    //std::cout<<"rrtBuild| pointLIst: "<<edgeList<<"\n"<<fflush;
-    edgeList.header.frame_id = "map"; //NOTE: this should be "paired" to the frame_id entry in Rviz
-    edgeList.header.stamp = ros::Time::now();
+  //std::cout<<"rrtBuild| pointLIst: "<<edgeList<<"\n"<<fflush;
+  edgeList.header.frame_id = "map"; //NOTE: this should be "paired" to the frame_id entry in Rviz
+  edgeList.header.stamp = ros::Time::now();
 
-    // Set the namespace and id
-    edgeList.ns = "graph";
-    edgeList.id = 99;
+  // Set the namespace and id
+  edgeList.ns = "graph";
+  edgeList.id = 99;
 
-    // Set the marker action
-    edgeList.action = visualization_msgs::Marker::ADD;
+  // Set the marker action
+  edgeList.action = visualization_msgs::Marker::ADD;
 
 
-    edgeList.lifetime = ros::Duration();
+  edgeList.lifetime = ros::Duration();
 
   //std::cout << "rrtBuild| edgelist: "<<edgeList<<"\n"<< fflush;
   draw_pub.publish(edgeList);
@@ -397,15 +360,6 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   // translate into adj graph for more efficient bfs
   int graphSize = sizeof(pointList);
   int edgeNum = sizeof(edgeList);
-  Graph adjGraph( graphSize );
-
-  for( int i = 0; i < edgeNum-1; i++ )
-  {
-    int from = indxEdgeList[2 * i];
-    int to   = indexEdgeList[2*i + 1];
-
-    adjGraph[from][to] = pointDistance(pointList[from], pointList[to]); //need to make actual graph.
-  }
 
 
 }
