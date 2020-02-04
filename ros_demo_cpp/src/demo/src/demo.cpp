@@ -9,8 +9,11 @@ Last update: 9/10/2019
 #include "std_msgs/String.h"
 #include <visualization_msgs/Marker.h>
 #include <sstream>
-#include <random>
-#include <iterator>
+#include <random>   // rng for rrt
+#include <iterator> //maybe unneeded?
+#include<bits/stdc++.h> // graph deffinition 
+
+using namespace std;
 
 int fuckup[] = {0,0,0,0,0,0,0,0};
 
@@ -27,19 +30,21 @@ const int SEED = 59073451;
 std::random_device                  rand_dev;
 std::mt19937                        generator(rand_dev());
 
-struct graphInfo
+struct rrtInfo
 {
   std::vector<geometry_msgs::Point> pointList;
   visualization_msgs::Marker edgeList;
+
+
   // constructor
-  /*graphInfo(std::vector<geometry_msgs::Point> pL, visualization_msgs::Marker eL)
+  /*rrtInfo(std::vector<geometry_msgs::Point> pL, visualization_msgs::Marker eL)
   {
     pointList = pL;
     edgeList = eL;
   }*/
 };
 
-graphInfo graph;
+rrtInfo rrtResult;
 
 double fRand(double fMin, double fMax)
 {
@@ -309,9 +314,9 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   //std::cout << "rrtBuild| edgelist: "<<edgeList<<"\n"<< fflush;
   draw_pub.publish(edgeList);
 
-  //planning_pub.publish( graph );
-  graph.pointList = pointList;
-  graph.edgeList = edgeList;
+  //planning_pub.publish( rrtResult );
+  rrtResult.pointList = pointList;
+  rrtResult.edgeList = edgeList;
 
   for( int i =0; i<8; i++)
   {
@@ -320,27 +325,10 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
 
 }
 
+
 void dijkstra()
 {
-  std::vector<geometry_msgs::Point> pointList = graph.pointList;
-  std::vector<geometry_msgs::Point> visited, unvisited(pointList);// unvisit as constructor taking ptlist
-  visualization_msgs::Marker edgeList = graph.edgeList;
-
-  int graphSize = sizeof(pointList);
-  double dist[graphSize]; // dist between corresponding pointlist member and stopPoint.
-  bool sptSet[graphSize]; // if T, corresponding member of pointList is in spt
-
-  // initialize distances to inf and sptSet
-  for( int i = 0; i< graphSize-1; i++)
-  {
-    dist[i] = INT_MAX;
-    sptSet[i] = false;
-  }
-  dist[graphSize-1] = 0.0;//stopPoint is at itself.
-
-  
-
-
+  return;
 }
 
 int main(int argc, char **argv)
@@ -641,9 +629,9 @@ int main(int argc, char **argv)
   if( flag == 0)
   {
     // init publisher
-    //ros::Publisher planning_pub = n.advertise<graphInfo>("path_planning", 10);
+    //ros::Publisher planning_pub = n.advertise<rrtInfo>("path_planning", 10);
     // init subscriber
-    //ros::Subscriber planning_sub = n.subscribe("path_planning", 10, planningCallback); //<graphInfo>("path_planning", 10, planningCallback);
+    //ros::Subscriber planning_sub = n.subscribe("path_planning", 10, planningCallback); //<rrtInfo>("path_planning", 10, planningCallback);
     // build a tree
     rrtBuild(GoalPoint.points[0], GoalPoint.points[1], obst, marker_pub, 0.1 ); //startPoint, obst[], int maxPts, double epsilon
     // Dijkstra shortest path from start to fin.
