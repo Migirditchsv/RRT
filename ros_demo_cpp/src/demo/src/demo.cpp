@@ -271,7 +271,7 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   std::cout<<"rrtBuild| *********FLAG2***********"<<endl;
   pointList.push_back(stopPoint);
   indxEdgeList.push_back( vector<int>() );// iEL[1] is start point, push back empty vec
-  std::cout<<"rrtBuild| *********FLAG3***********"<<endl;
+  std::cout<<"rrtBuild| *********FLAG3*********** \n sizeof(iEL): "<< sizeof(indxEdgeList) <<endl;
 
 
 
@@ -282,10 +282,12 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     qRandom.x = 0.0;
     qRandom.y = 0.0;
     qRandom.z = 0.0;
+    
     // pick a point not in or clipping an obsticle
     randomValidPoint(&qRandom, obst);
     int nearIndx = nearestPointIndx(qRandom, pointList);
     qNear = pointList[nearIndx];
+
     // walks along qRandom - qNear vector and clip it if path intersects object
     qNew = clippingCheck(qNear, qRandom, obst);
     
@@ -295,7 +297,9 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     //std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qNew("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
     pointList.push_back( qNew );
     //std::cout<<"rrtBuild| qNew placed at: ("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
-    int newIndx = sizeof(pointList) - 1; // indx of newest pt 
+
+    // Add new point and edges to index based edge list
+    int newIndx = sizeof(pointList); // indx of newest pt 
 
     std::cout<<"rrtBuild| *********FLAG 4***********"<<endl;
 
@@ -306,7 +310,7 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
    
     indxEdgeList.push_back( vector<int>() ); // push a new row onto iEL for newIndex
 
-    std::cout<<"rrtBuild| *********FLAG 6***********"<<endl;
+    std::cout<<"rrtBuild| *********FLAG 6*********** \n sizeof(iEL): "<< sizeof(indxEdgeList) <<endl;
 
 
     // If qNew is in range of stopPoint, attempt to connect
@@ -323,7 +327,7 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
         std::cout<<"rrtBuild| *********FLAG 7*********** \n iEL["<<newIndx<<"/"<<sizeof(indxEdgeList)
         <<") = "<<endl;
         
-        indxEdgeList[newIndx].push_back(1); // 1 is indx of stoppoint
+        indxEdgeList[newIndx].push_back( {1} ); // 1 is indx of stoppoint
         
         std::cout<<"rrtBuild| *********FLAG 8***********"<<endl;
         
