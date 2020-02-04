@@ -322,6 +322,7 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   geometry_msgs::Point qRandom, qNear, qNew, stopCheck; // points for feeling out and growing graph
   std::vector<geometry_msgs::Point> pointList;// pointList for rapidly finding Nearby
   visualization_msgs::Marker edgeList; // store graph as edgelist, represent data type as list of lines: 1a,1b,2a,2b,...
+  vector<int> indxEdgeList; // pointlist indicies of edges in (1a,1b, 2a, 2b) format
   int indx;
   edgeList.type = visualization_msgs::Marker::LINE_LIST;
   edgeList.scale.x = GRAPH_LINE_WIDTH; // line width is set by x dimension only
@@ -334,14 +335,16 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
 
   for(int i=0; i< MAX_PTS; i++)
   {
-    qRandom.x = 1.0;
-    qRandom.y = 1.0;
+    // point positions must be initialized
+    qRandom.x = 0.0;
+    qRandom.y = 0.0;
     qRandom.z = 0.0;
-    randomValidPoint(&qRandom, obst); // pick a point not in or clipping an obsticle
-    indx = nearestPointIndx(qRandom, pointList);
-    qNear = pointList[indx];
-    qNew = clippingCheck(qNear, qRandom, obst); // walks along qRandom - qNear vector and clips it if path intersects object
-    
+    // pick a point not in or clipping an obsticle
+    randomValidPoint(&qRandom, obst);
+    nearIndx = nearestPointIndx(qRandom, pointList);
+    qNear = pointList[nearIndx];
+    // walks along qRandom - qNear vector and clip it if path intersects object
+    qNew = clippingCheck(qNear, qRandom, obst);
     
     // add line pair to line_list and point to point list
     edgeList.points.push_back( qNear );
@@ -349,6 +352,9 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
     //std::cout<<"rrtBuild| qNear(" << qNear.x <<","<<qNear.y<<") paired with qNew("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
     pointList.push_back( qNew );
     //std::cout<<"rrtBuild| qNew placed at: ("<<qNew.x<<","<<qNew.y<<")\n"<<fflush;
+    int newIndx = sizeof(pointlist) - 1; // indx of newest pt 
+    indxEdgeList.push_back(nearIndx);
+    indexEdgeList.push_back(newIndx);
 
     // If qNew is in range of stopPoint, attempt to connect
     if( pointDistance(qNew,stopPoint) <= RANGE )
@@ -389,9 +395,17 @@ void rrtBuild(geometry_msgs::Point startPoint, geometry_msgs::Point stopPoint, v
   rrtResult.edgeList = edgeList;
 
   // translate into adj graph for more efficient bfs
-  Graph adjGraph( sizeof(pointList) );
-  
+  int graphSize = sizeof(pointList);
+  int edgeNum = sizeof(edgeList);
+  Graph adjGraph( graphSize );
 
+  for( int i = 0; i < edgeNum-1; i++ )
+  {
+    int from = indxEdgeList[2 * i];
+    int to   = indexEdgeList[2*i + 1];
+
+    adjGraph[from][to] = pointDistance(pointList[from], pointList[to]); //need to make actual graph.
+  }
 
 
 }
