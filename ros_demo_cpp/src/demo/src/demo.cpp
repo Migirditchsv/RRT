@@ -13,7 +13,7 @@ Last update: 9/10/2019
 // declare some global functions we'll need
 void chatterCallback(const std_msgs::String::ConstPtr& msg) // reads in from chatter_pub
 void markerCallback( const vizualization_msgs::Marker::ConstPtr& vis)// obstacle, rob and marker data here 
-void RTT(
+
 
 // Declare some global vars
 
