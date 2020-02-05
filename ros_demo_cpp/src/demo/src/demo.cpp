@@ -14,7 +14,7 @@ Last update: 9/10/2019
 #include <sstream>
 
 //custom include
-#include "rrh.h"
+#include "rrt.hpp"
 //#include "messaging.h"
 
 int main(int argc, char **argv)
@@ -311,6 +311,8 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
+  int result = testFunciton(99);
+  std::cout<<" \n TEST FUNCTION: "<<result<<"\n"<<std::endl;
 
   /******************** To here, we finished displaying our components **************************/
 
