@@ -12,12 +12,24 @@
 #include <iostream> // output
 #include <random> //prng for random point placement
 
+// Constants
+#define RANDOMSEED 1993
+#define WIDTH 10.0
+
 // Use namespaces
 using namespace std;
 
-// GLobal Objects
+// Global objects
+std::mt19937 gen(RANDOMSEED); 
 
 // Global functions
+double fRandom(double fMin, double fMax)
+{
+    std::uniform_real_distribution<> dist(fMin, fMax);
+    double fRand = dist(gen);// use the random engine to pull somehting out of dist
+    return(fRand);
+}
+
 int testFunction(int i)
 {
     return(i);
@@ -34,19 +46,42 @@ struct point
     point *parent; // pointer to unique parent
 
     // Public Functions
-    void randomPlacement(visualization_msgs::Marker obst);
+    void randomEdge(visualization_msgs::Marker obst);
     int nearestNeighbor(vector<point> tree); // return index of nearest neighbor in tree
 
     private:
 
     // Private Vars
+ 
 
     // Private fxns
     void validPoint(visualization_msgs::Marker obst);
     double pointDistance(point target);
 
 
+};
 
+struct rrtSearch
+{
+
+vector<point> tree; // where it all happens.
+vector<int> shortestPath;
+    
+
+
+};
+
+// Point Functions
+
+void point::randomEdge()
+{   
+    bool tryCondition = true;
+    while( tryCondition == true )
+    {
+        this->x = fRandom(-WIDTH,WIDTH);
+        this->y = fRandom(-WIDTH,WIDTH);
+    }
 }
 
 #endif
+
