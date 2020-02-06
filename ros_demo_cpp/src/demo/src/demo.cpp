@@ -311,7 +311,7 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
-  int result = testFunciton(99);
+  int result = testFunction(99);
   std::cout<<" \n TEST FUNCTION: "<<result<<"\n"<<std::endl;
 
   /******************** To here, we finished displaying our components **************************/
