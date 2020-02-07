@@ -55,7 +55,7 @@ void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
         <<"\n\tmsg->length:"<<length<<endl;
 
         // push to start and end points pointed to by constructor from rrtSolve. 
-
+        rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
 
    }
     else if( ns == "obstacles")
@@ -86,7 +86,7 @@ void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
     return;
 }
 
-struct visMsgSubscriber
+struct visMsgSubscriber : public rrtSearch
 {
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe<visualization_msgs::Marker>("visualization_marker", 100,
@@ -106,7 +106,7 @@ struct point
     double x,y; // position
     int index, parentIndex; // index for incluison in vector of points & index of parent. 
     point *parent; // pointer to unique parent
-    visualization_msgs::Marker obst;
+    visualization_msgs::Marker obst; //need to link to rrtSearch value
 
     // Public Functions
     void randomEdge();
@@ -128,19 +128,37 @@ struct rrtSearch
 {
 
 public:
+    // public vars
     vector<point> tree; // where it all happens.
     vector<int> shortestPath;
     visMsgSubscriber visSub;
+    // public fxns
+    void setTreeSize(int _treeSize){treeSize = _treeSize;}
+    void setObst(visualization_msgs::Marker newObst);
+    void setGoalPoints(visualization_msgs::Marker newPoints);
 
+    rrtSearch(int _treeSize)
+    {
+        setTreeSize(_treeSize);
+
+        for(int i = 0; i<treeSize; i++)
+        {
+            tree[i].x = -WIDTH;
+            tree[i].y = -WIDTH;
+        }
+    }
 
     
 private:
+visualization_msgs::Marker obst;
+int treeSize;
+
     
 };
 
 // Point Functions
 
-void point::randomEdge()
+void point::randomEdge() //Edges should be a property of trees, not points
 {   
     bool tryCondition = true;
     while( tryCondition == true )
@@ -152,3 +170,14 @@ void point::randomEdge()
 
 #endif
 
+void setObst(visualization_msgs::Marker newObst)
+{
+    obst = newObst;
+    return;
+}
+
+void setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
+{
+    goalPoints = newPoints;
+    return;
+}
