@@ -311,13 +311,14 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
+/*
   int result = testFunction(99);
   std::cout<<" \n TEST FUNCTION: "<<result<<"\n"<<std::endl;
   std::cout<<" \n Random float: "<< fRandom(-17,3)<<std::endl;
   // static rrtSolver rrt(RRT_MAX_NODES);
   // if(!rrt.complete){rrt.addEdge();}
   // elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
-
+*/
 
   /******************** To here, we finished displaying our components **************************/
 
@@ -344,3 +345,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
+//};//this shouldn't have to be here. what is happening. IDE confirms it is unmatched

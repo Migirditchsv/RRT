@@ -26,6 +26,11 @@ using namespace std;
 // Global objects
 std::mt19937 gen(RANDOMSEED); 
 
+// forward declarations
+struct rrtSearch;
+struct point;
+struct visMsgSubscriber;
+
 // Global functions
 double fRandom(double fMin, double fMax)
 {
@@ -39,23 +44,15 @@ int testFunction(int i)
     return(i);
 }
 
-// Structs
-struct visMsgSubscriber : public rrtSearch
+class testclass
 {
 public:
-    // public objects
-    ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe<visualization_msgs::Marker>("visualization_marker", 100,
-                                      visMarkerCallback);
-    visualization_msgs::Marker startPoint;
-    visualization_msgs::Marker endPoint;
-    // public fxns
-    visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
-    
+    int testInt = 3;
 private:
-    
+    int privateTestInt = 4;
 };
 
+// Structs
 struct point
 {
     public:
@@ -90,8 +87,19 @@ public:
 
     // public fxns
     void setTreeSize(int _treeSize){treeSize = _treeSize;}
-    void setObst(visualization_msgs::Marker *newObst){obst = newObst; return;};
-    void setGoalPoints(visualization_msgs::Marker *newPoints){points = newPoints; return;};
+    void setObst(visualization_msgs::Marker newObst)
+    {obst = newObst; return;};
+    void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
+    {
+        tree[0].x = newPoint->points[0].x;
+        tree[0].y = newPoint->points[0].y;
+        tree[0].parentIndex = 0; //start is it's own parent
+        tree[0].parent = &tree[0]; 
+        tree[1].x = newPoint->points[1].x;
+        tree[1].y = newPoint->points[1].y;
+        return;
+    }
+    void randomEdge();
 
     rrtSearch(int _treeSize)
     {
@@ -110,23 +118,16 @@ private:
     int treeSize;
     vector<point> tree; // where it all happens.
     vector<int> shortestPath;
-    visMsgSubscriber visSub;
-
+    // sub fxns & objects
+    ros::NodeHandle n;
+    ros::Subscriber sub = n.subscribe<visualization_msgs::Marker>("visualization_marker", 100, &rrtSearch::visMarkerCallback,this);
+    visualization_msgs::Marker startPoint;
+    visualization_msgs::Marker endPoint;
+    void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
 };
 
 // Point Functions
 
-void point::randomEdge() //Edges should be a property of trees, not points
-{   
-    bool condition = true;
-    while( condition == true )
-    {
-        this->x = fRandom(-WIDTH,WIDTH);
-        this->y = fRandom(-WIDTH,WIDTH);
-        condition = false;
-    }
-    return;
-}
 
 int nearestNeighbor(vector<point> tree)
 {
@@ -144,23 +145,9 @@ double pointDistance(point target)
 }
 
 
-#endif
-
-void setObst(visualization_msgs::Marker newObst)
-{
-    obst = newObst;
-    return;
-}
-
-void setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
-{
-    goalPoints = newPoints;
-    return;
-}
-
 // pub sub fxns
 
-void visMsgSubscriber::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
+void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
     int length;
     cout << "visMsgSybscriber received: " << msg->ns <<endl;
@@ -175,7 +162,7 @@ void visMsgSubscriber::visMarkerCallback(const visualization_msgs::Marker::Const
         <<"\n\tmsg->length:"<<length<<endl;
 
         // push to start and end points pointed to by constructor from rrtSolve. 
-        rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
+        this->setGoalPoints(msg);
 
    }
     else if( ns == "obstacles")
@@ -205,3 +192,13 @@ void visMsgSubscriber::visMarkerCallback(const visualization_msgs::Marker::Const
     }
     return;
 }
+
+// rrtSearch member fxns
+
+
+void rrtSearch::randomEdge()
+{   
+
+}
+
+#endif
