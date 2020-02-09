@@ -10,11 +10,9 @@
 
 // Standard Lib Include
 #include <iostream> // output
-#include <random> //prng for random point placement
-// Ros include
+#include <random> //prng for random point placement// Ros include
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-// system include
 #include <visualization_msgs/Marker.h>
 #include <sstream>
 
@@ -42,35 +40,62 @@ int testFunction(int i)
 }
 
 // Structs
-class publishVisMarker
+void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
-    private:
-        ros::Publisher pub;
-        ros::NodeHandle n;
-    public:
+    int length;
+    cout << "visMsgSybscriber received: " << msg->ns <<endl;
 
-        publish()
-        {
-            pub = n.advertise<visualization_msgs::Marker> ("visualization_marker", 10);
-        }
-};
+    const std::string ns = msg->ns;
 
-class subscribeVisMarker
+   if( ns == "Goal Points")
+   {    
+       length = msg->points.size();
+        // write to start and end pts
+        cout<<"rrt::vizMarkerCallback| is a goal"
+        <<"\n\tmsg->length:"<<length<<endl;
+
+        // push to start and end points pointed to by constructor from rrtSolve. 
+        rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
+
+   }
+    else if( ns == "obstacles")
+    {
+        // write to obst vec
+        cout<<"rrt::vizMarkerCallback| is a obst"<<endl;
+    }
+    else if( ns == "Boundary")
+    {
+        // write to obst vec
+        cout<<"rrt::vizMarkerCallback| is a Boundary"<<endl;
+    }
+    else if( ns == "vertices_and_lines")
+    {
+        // ignore
+        cout<<"rrt::vizMarkerCallback| is a vertices_and_lines"<<endl;
+    }
+    else if( ns == "rob")
+    {
+        // maybe use for truthing
+        cout<<"rrt::vizMarkerCallback| is a rob"<<endl;
+    }
+    else
+    {
+        cerr<<"rrt::visMarkerCallback ERROR: msg->ns of unknown category:"<<ns<<endl;
+        exit(0);
+    }
+    return;
+}
+
+struct visMsgSubscriber : public rrtSearch
 {
+    ros::NodeHandle n;
+    ros::Subscriber sub = n.subscribe<visualization_msgs::Marker>("visualization_marker", 100,
+                                      visMarkerCallback);
+    visualization_msgs::Marker startPoint;
+    visualization_msgs::Marker endPoint;
+    
     private:
-        ros::Subscriber sub;
-        ros::NodeHandle n;
-    public:
 
-        subscribe()
-        {
-            sub = n.subscribe<visualization_msgs::Marker> ("visualization_marker", 10, &subscribeVisMarker::callback, this);
-        }
-
-        void callback(const visualization_msgs::Marker& obst)
-        {
-            cout<<" rrt::Class subscribeVisMarker:  callback: "<< obst << endl;
-        }
 };
 
 struct point
@@ -81,14 +106,15 @@ struct point
     double x,y; // position
     int index, parentIndex; // index for incluison in vector of points & index of parent. 
     point *parent; // pointer to unique parent
+    visualization_msgs::Marker obst; //need to link to rrtSearch value
 
     // Public Functions
-    void randomEdge(visualization_msgs::Marker obst);
+    void randomEdge();
     int nearestNeighbor(vector<point> tree); // return index of nearest neighbor in tree
 
     private:
 
-    // Private Vars
+    
  
 
     // Private fxns
@@ -101,16 +127,38 @@ struct point
 struct rrtSearch
 {
 
-vector<point> tree; // where it all happens.
-vector<int> shortestPath;
-subscribeVisMarker obstSubscription; 
+public:
+    // public vars
+    vector<point> tree; // where it all happens.
+    vector<int> shortestPath;
+    visMsgSubscriber visSub;
+    // public fxns
+    void setTreeSize(int _treeSize){treeSize = _treeSize;}
+    void setObst(visualization_msgs::Marker newObst);
+    void setGoalPoints(visualization_msgs::Marker newPoints);
 
+    rrtSearch(int _treeSize)
+    {
+        setTreeSize(_treeSize);
 
+        for(int i = 0; i<treeSize; i++)
+        {
+            tree[i].x = -WIDTH;
+            tree[i].y = -WIDTH;
+        }
+    }
+
+    
+private:
+visualization_msgs::Marker obst;
+int treeSize;
+
+    
 };
 
 // Point Functions
 
-void point::randomEdge(visualization_msgs::Marker obst)
+void point::randomEdge() //Edges should be a property of trees, not points
 {   
     bool condition = true;
     while( condition == true )
@@ -140,3 +188,14 @@ double pointDistance(point target)
 
 #endif
 
+void setObst(visualization_msgs::Marker newObst)
+{
+    obst = newObst;
+    return;
+}
+
+void setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
+{
+    goalPoints = newPoints;
+    return;
+}
