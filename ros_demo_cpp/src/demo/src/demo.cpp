@@ -314,6 +314,10 @@ int main(int argc, char **argv)
   int result = testFunction(99);
   std::cout<<" \n TEST FUNCTION: "<<result<<"\n"<<std::endl;
   std::cout<<" \n Random float: "<< fRandom(-17,3)<<std::endl;
+  // static rrtSolver rrt(RRT_MAX_NODES);
+  // if(!rrt.complete){rrt.addEdge();}
+  // elseif 
+
 
   /******************** To here, we finished displaying our components **************************/
 

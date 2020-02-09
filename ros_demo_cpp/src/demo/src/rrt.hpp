@@ -8,9 +8,15 @@
 #ifndef RAPIDRANDOMTREE
 #define RAPIDRANDOMTREE
 
-// Include
+// Standard Lib Include
 #include <iostream> // output
 #include <random> //prng for random point placement
+// Ros include
+#include "ros/ros.h"
+#include "std_msgs/String.h"
+// system include
+#include <visualization_msgs/Marker.h>
+#include <sstream>
 
 // Constants
 #define RANDOMSEED 1993
@@ -36,6 +42,37 @@ int testFunction(int i)
 }
 
 // Structs
+class publishVisMarker
+{
+    private:
+        ros::Publisher pub;
+        ros::NodeHandle n;
+    public:
+
+        publish()
+        {
+            pub = n.advertise<visualization_msgs::Marker> ("visualization_marker", 10);
+        }
+};
+
+class subscribeVisMarker
+{
+    private:
+        ros::Subscriber sub;
+        ros::NodeHandle n;
+    public:
+
+        subscribe()
+        {
+            sub = n.subscribe<visualization_msgs::Marker> ("visualization_marker", 10, &subscribeVisMarker::callback, this);
+        }
+
+        void callback(const visualization_msgs::Marker& obst)
+        {
+            cout<<" rrt::Class subscribeVisMarker:  callback: "<< obst << endl;
+        }
+};
+
 struct point
 {
     public:
@@ -66,22 +103,40 @@ struct rrtSearch
 
 vector<point> tree; // where it all happens.
 vector<int> shortestPath;
-    
+subscribeVisMarker obstSubscription; 
 
 
 };
 
 // Point Functions
 
-void point::randomEdge()
+void point::randomEdge(visualization_msgs::Marker obst)
 {   
-    bool tryCondition = true;
-    while( tryCondition == true )
+    bool condition = true;
+    while( condition == true )
     {
         this->x = fRandom(-WIDTH,WIDTH);
         this->y = fRandom(-WIDTH,WIDTH);
+        condition = false;
     }
+    return;
 }
+
+int nearestNeighbor(vector<point> tree)
+{
+    return(0);
+}
+
+void validPoint(visualization_msgs::Marker obst)
+{
+    return;
+}
+
+double pointDistance(point target)
+{
+    return(0);
+}
+
 
 #endif
 

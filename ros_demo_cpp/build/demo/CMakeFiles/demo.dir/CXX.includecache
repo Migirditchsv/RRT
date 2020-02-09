@@ -23,6 +23,14 @@ iostream
 -
 random
 -
+ros/ros.h
+/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/src/demo/src/ros/ros.h
+std_msgs/String.h
+/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/src/demo/src/std_msgs/String.h
+visualization_msgs/Marker.h
+-
+sstream
+-
 
 /opt/ros/melodic/include/geometry_msgs/Point.h
 string
