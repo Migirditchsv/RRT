@@ -316,7 +316,7 @@ int main(int argc, char **argv)
   std::cout<<" \n Random float: "<< fRandom(-17,3)<<std::endl;
   // static rrtSolver rrt(RRT_MAX_NODES);
   // if(!rrt.complete){rrt.addEdge();}
-  // elseif 
+  // elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
 
 
   /******************** To here, we finished displaying our components **************************/

@@ -40,62 +40,20 @@ int testFunction(int i)
 }
 
 // Structs
-void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
-{
-    int length;
-    cout << "visMsgSybscriber received: " << msg->ns <<endl;
-
-    const std::string ns = msg->ns;
-
-   if( ns == "Goal Points")
-   {    
-       length = msg->points.size();
-        // write to start and end pts
-        cout<<"rrt::vizMarkerCallback| is a goal"
-        <<"\n\tmsg->length:"<<length<<endl;
-
-        // push to start and end points pointed to by constructor from rrtSolve. 
-        rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
-
-   }
-    else if( ns == "obstacles")
-    {
-        // write to obst vec
-        cout<<"rrt::vizMarkerCallback| is a obst"<<endl;
-    }
-    else if( ns == "Boundary")
-    {
-        // write to obst vec
-        cout<<"rrt::vizMarkerCallback| is a Boundary"<<endl;
-    }
-    else if( ns == "vertices_and_lines")
-    {
-        // ignore
-        cout<<"rrt::vizMarkerCallback| is a vertices_and_lines"<<endl;
-    }
-    else if( ns == "rob")
-    {
-        // maybe use for truthing
-        cout<<"rrt::vizMarkerCallback| is a rob"<<endl;
-    }
-    else
-    {
-        cerr<<"rrt::visMarkerCallback ERROR: msg->ns of unknown category:"<<ns<<endl;
-        exit(0);
-    }
-    return;
-}
-
 struct visMsgSubscriber : public rrtSearch
 {
+public:
+    // public objects
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe<visualization_msgs::Marker>("visualization_marker", 100,
                                       visMarkerCallback);
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
+    // public fxns
+    visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
     
-    private:
-
+private:
+    
 };
 
 struct point
@@ -129,13 +87,11 @@ struct rrtSearch
 
 public:
     // public vars
-    vector<point> tree; // where it all happens.
-    vector<int> shortestPath;
-    visMsgSubscriber visSub;
+
     // public fxns
     void setTreeSize(int _treeSize){treeSize = _treeSize;}
-    void setObst(visualization_msgs::Marker newObst);
-    void setGoalPoints(visualization_msgs::Marker newPoints);
+    void setObst(visualization_msgs::Marker *newObst){obst = newObst; return;};
+    void setGoalPoints(visualization_msgs::Marker *newPoints){points = newPoints; return;};
 
     rrtSearch(int _treeSize)
     {
@@ -150,10 +106,12 @@ public:
 
     
 private:
-visualization_msgs::Marker obst;
-int treeSize;
+    visualization_msgs::Marker obst;
+    int treeSize;
+    vector<point> tree; // where it all happens.
+    vector<int> shortestPath;
+    visMsgSubscriber visSub;
 
-    
 };
 
 // Point Functions
@@ -197,5 +155,53 @@ void setObst(visualization_msgs::Marker newObst)
 void setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
 {
     goalPoints = newPoints;
+    return;
+}
+
+// pub sub fxns
+
+void visMsgSubscriber::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
+{
+    int length;
+    cout << "visMsgSybscriber received: " << msg->ns <<endl;
+
+    const std::string ns = msg->ns;
+
+   if( ns == "Goal Points")
+   {    
+       length = msg->points.size();
+        // write to start and end pts
+        cout<<"rrt::vizMarkerCallback| is a goal"
+        <<"\n\tmsg->length:"<<length<<endl;
+
+        // push to start and end points pointed to by constructor from rrtSolve. 
+        rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& msg)
+
+   }
+    else if( ns == "obstacles")
+    {
+        // write to obst vec
+        cout<<"rrt::vizMarkerCallback| is a obst"<<endl;
+    }
+    else if( ns == "Boundary")
+    {
+        // write to obst vec
+        cout<<"rrt::vizMarkerCallback| is a Boundary"<<endl;
+    }
+    else if( ns == "vertices_and_lines")
+    {
+        // ignore
+        cout<<"rrt::vizMarkerCallback| is a vertices_and_lines"<<endl;
+    }
+    else if( ns == "rob")
+    {
+        // maybe use for truthing
+        cout<<"rrt::vizMarkerCallback| is a rob"<<endl;
+    }
+    else
+    {
+        cerr<<"rrt::visMarkerCallback ERROR: msg->ns of unknown category:"<<ns<<endl;
+        exit(0);
+    }
     return;
 }
