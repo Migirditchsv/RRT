@@ -66,10 +66,10 @@ struct point
     // Public Functions
 
     //constructor
-    point(int _x, int _y)
+    point()
     {
-        this -> x = _x;
-        this -> y = _y;
+        this -> x = -WIDTH; //init to bottom corner
+        this -> y = -WIDTH;
         this -> index = -1;
         this -> parentIndex = -1;
         this -> parent = NULL;
@@ -103,40 +103,123 @@ public:
 
     
 private:
-    visualization_msgs::Marker obst;
+    // private PODs
     int treeSize;
+    // private objects
+    visualization_msgs::Marker obst;
     vector<point> tree; // where it all happens.
     vector<int> shortestPath;
-    // sub fxns & objects
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe<visualization_msgs::Marker>("visualization_marker", 100, &rrtSearch::visMarkerCallback,this);
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
+    //private fxns
     void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
-    void validRandomPoint(int pointIndx);
-    void addPointToTree();
+    void addTreePoint();
+    void validRandomPoint(int pointIndex);
+    bool validEdge(int pointIndex); // returns 0 if edge fails
+    int  nearestNeighbor(int pointIndex); // nearest in tree
+ 
 };
 
 // Point Functions
-
-
-int nearestNeighbor(vector<point> tree)
+double point::pointDistance(point target)
 {
-    return(0);
+    double dx = pow( (this -> x - target.x), 2);
+    double dy = pow( (this -> y - target.y), 2);
+    double dist = sqrt( dx + dy );
+    return(dist);
 }
 
-void validPoint(visualization_msgs::Marker obst)
+// rrtSearch member fxns
+
+void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 {
+    obst = *newObst;// remember to dereffrence the message pointer into the visMsg it points to
+    //cout<<"rrtSearch::setObst: obst\n: "<<obst<<"\n"<<endl; // yup it's importing correctly. 
     return;
 }
 
-double pointDistance(point target)
+
+void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
 {
+    tree[0].x = newPoint->points[0].x;
+    tree[0].y = newPoint->points[0].y;
+    tree[0].parentIndex = 0; //start is it's own parent
+    tree[0].parent = &tree[0]; 
+    tree[1].x = newPoint->points[1].x;
+    tree[1].y = newPoint->points[1].y;
+    return;
+}
+
+int rrtSearch::nearestNeighbor(int pointIndex)
+{   
+    
     return(0);
 }
 
+void rrtSearch::addTreePoint()
+{
+    int position = sizeof(this -> tree);
+    // makesure we have points to add.
+    if(position >= treeSize)
+    {
+        cerr<<"rrtSearch::addTreePoint: OUT OF POINTS TO ADD. SEARCH FAILED."<<endl;
+        exit(0);
+    }
+    // add point to tree
+    point newPoint;
+    this -> tree.push_back(newPoint);
+    // initialize points in tree to be invisable, have -1 as a parent index and a null pointer as a parent pointer
+    tree[position].x = -WIDTH;
+    tree[position].y = -WIDTH;
+    tree[position].index = position;
+    tree[position].parentIndex = -1;
+    // use a null pointer to cause a program crash (address NULL=0 is reserved for the OS) if uninited point is accessed. 
+    tree[position].parent = NULL;
+    cout<<" rrt.hpp| rrtSearch(int treeSize): tree["<<position<<"] inited"<<endl;
+    return;
+}
 
-// pub sub fxns
+void rrtSearch::addRandomEdge()
+{   
+    int newPointIndex;
+
+    // attempt create the point to place
+    this -> addTreePoint();
+    // get index of newPoint
+    newPointIndex = sizeof(tree) - 1;
+    // find a valid random point
+    this -> validRandomPoint(newPointIndex);
+    return;
+}
+
+void rrtSearch::validRandomPoint(int pointIndex)
+{
+    double tempX, tempY;
+    int obstSize = sizeof(obst.points);
+    cout<<"rrtSearch::validRandomPoint: obstSize: "<<obstSize<<endl;
+
+    for(int i = 0; i<PLACEMENT_TRIES; i++)
+    {
+        // Guess a point
+        tempX = fRandom(-WIDTH,WIDTH);
+        tempY = fRandom(-WIDTH,WIDTH);
+
+        for( int j = 0; j < obstSize; j++)
+        {
+            int objectType = obst.type;
+
+        }
+    }
+    return;
+}
+
+bool rrtSearch::validEdge(int pointIndex)
+{
+    return( false );// holder
+}
+
 
 void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
@@ -185,74 +268,5 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
     return;
 }
 
-// rrtSearch member fxns
-
-void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
-{
-    obst = *newObst;// remember to dereffrence the message pointer into the visMsg it points to
-    //cout<<"rrtSearch::setObst: obst\n: "<<obst<<"\n"<<endl; // yup it's importing correctly. 
-    return;
-}
-
-
-void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
-{
-tree[0].x = newPoint->points[0].x;
-tree[0].y = newPoint->points[0].y;
-tree[0].parentIndex = 0; //start is it's own parent
-tree[0].parent = &tree[0]; 
-tree[1].x = newPoint->points[1].x;
-tree[1].y = newPoint->points[1].y;
-return;
-}
-
-void rrtSearch::addRandomEdge()
-{   
-    // find a valid random point
-    this -> validRandomPoint(); //*** resume here
-}
-
-void rrtSearch::validRandomPoint(int pointIndx)
-{
-    double tempX, tempY;
-    int obstSize = sizeof(obst.points);
-    cout<<"rrtSearch::validRandomPoint: obstSize: "<<obstSize<<endl;
-
-    for(int i = 0; i<PLACEMENT_TRIES; i++)
-    {
-        // Guess a point
-        tempX = fRandom(-WIDTH,WIDTH);
-        tempY = fRandom(-WIDTH,WIDTH);
-
-        for( int j = 0; j < obstSize; j++)
-        {
-            int objectType = obst.type;
-
-        }
-
-}
-
-void addTreePoint()
-{
-    int currentTreeSize = sizeof(this.tree);
-    // makesure we have points to add.
-    if(currentTreeSize >= treeSize)
-    {
-        cerr<<"rrtSearch::addTreePoint: OUT OF POINTS TO ADD. SEARCH FAILED."<<endl;
-        exit(0);
-    }
-    // add point to tree
-    point newPoint;
-    this.tree.push_back()
-    // initialize points in tree to be invisable, have -1 as a parent index and a null pointer as a parent pointer
-    tree[i].x = -WIDTH;
-    tree[i].y = -WIDTH;
-    tree[i].index = i;
-    tree[i].parentIndex = -1;
-    // use a null pointer to cause a program crash (address NULL=0 is reserved for the OS) if uninited point is accessed. 
-    tree[i].parent = NULL;
-    cout<<" rrt.hpp| rrtSearch(int treeSize): tree["<<i<<"] inited"<<endl;
-
-}
 
 #endif
