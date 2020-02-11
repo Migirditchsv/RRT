@@ -96,9 +96,6 @@ public:
         cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
         setTreeSize(_treeSize);
         tree.resize(2);
-        cout<<" rrt.hpp| rrtSearch(int treeSize): treeSize set"<<endl;
-
-        cout<<" rrt.hpp| rrtSearch(int treeSize): constructor complete"<<endl;
     }
 
     
@@ -106,7 +103,7 @@ private:
     // private PODs
     int treeSize;
     // private objects
-    visualization_msgs::Marker obst;
+    vector<visualization_msgs::Marker> obst;
     vector<point> tree; // where it all happens.
     vector<int> shortestPath;
     ros::NodeHandle n;
@@ -135,8 +132,20 @@ double point::pointDistance(point target)
 
 void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 {
-    obst = *newObst;// remember to dereffrence the message pointer into the visMsg it points to
-    //cout<<"rrtSearch::setObst: obst\n: "<<obst<<"\n"<<endl; // yup it's importing correctly. 
+    int id, checkId, obstSize;
+    bool newEntry;
+
+    id = *newObst.id;
+    // check if novel
+    obstSize = sizeof(obst);
+    newEntry = false;
+    
+    for(int i = 0; i<obstSize; i++);
+    {
+        checkId = obst[i].id;
+        if(checkId==id){continue;}
+        else{obst.push_back(*newObst);}
+    }
     return;
 }
 
@@ -196,7 +205,7 @@ void rrtSearch::addRandomEdge()
 
 void rrtSearch::validRandomPoint(int pointIndex)
 {
-    double tempX, tempY;
+    double tempX, tempY, scaleX, scaleY, obstX, obstY, w;
     int obstSize = sizeof(obst.points);
     cout<<"rrtSearch::validRandomPoint: obstSize: "<<obstSize<<endl;
 
@@ -207,10 +216,30 @@ void rrtSearch::validRandomPoint(int pointIndex)
         tempY = fRandom(-WIDTH,WIDTH);
 
         for( int j = 0; j < obstSize; j++)
-        {
+        {/*
+            //get obj generic info
             int objectType = obst.type;
+            double obstX = obst.pose.position.x;
+            double obstY = obst[i].pose.position.y;
 
-        }
+            switch(objectType)
+            {
+                case 1: // Cube
+
+                scaleX = obst[i].scale.x / 2.0;
+                scaleY = obst[i].scale.y / 2.0;
+
+                // rotation check
+                if( obst[i].pose.orientation.w!=1.0)
+                {
+                scaleX = 2.5;
+                scaleY = 0.3;
+                }
+
+            }
+
+
+        */}
     }
     return;
 }
@@ -242,7 +271,7 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
     else if( ns == "obstacles")
     {
         // write to obst vec
-        cout<<"rrt::vizMarkerCallback| is a obst"<<endl;
+        cout<<"rrt::vizMarkerCallback| is a obst:\n"<<*msg<<endl;
         this->setObst(msg);
     }
     else if( ns == "Boundary")
