@@ -17,6 +17,9 @@ Last update: 9/10/2019
 #include "rrt.hpp"
 //#include "messaging.h"
 
+// defines
+#define RRT_MAX_NODES 2000
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "ros_demo");
@@ -311,14 +314,13 @@ int main(int argc, char **argv)
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
-/*
+
   int result = testFunction(99);
-  std::cout<<" \n TEST FUNCTION: "<<result<<"\n"<<std::endl;
-  std::cout<<" \n Random float: "<< fRandom(-17,3)<<std::endl;
-  // static rrtSolver rrt(RRT_MAX_NODES);
+  std::cout<<" \n loop \n"<<std::endl;
+  static rrtSearch rrt(RRT_MAX_NODES);
   // if(!rrt.complete){rrt.addEdge();}
   // elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
-*/
+
 
   /******************** To here, we finished displaying our components **************************/
 

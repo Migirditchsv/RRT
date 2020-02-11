@@ -87,29 +87,30 @@ public:
 
     // public fxns
     void setTreeSize(int _treeSize){treeSize = _treeSize;}
-    void setObst(visualization_msgs::Marker newObst)
-    {obst = newObst; return;};
-    void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
-    {
-        tree[0].x = newPoint->points[0].x;
-        tree[0].y = newPoint->points[0].y;
-        tree[0].parentIndex = 0; //start is it's own parent
-        tree[0].parent = &tree[0]; 
-        tree[1].x = newPoint->points[1].x;
-        tree[1].y = newPoint->points[1].y;
-        return;
-    }
+    void setObst(const visualization_msgs::Marker::ConstPtr& newObst);
+    void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint); // = not defined for marker to point
     void randomEdge();
 
     rrtSearch(int _treeSize)
     {
+        cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
         setTreeSize(_treeSize);
+        tree.resize(treeSize);
+        cout<<" rrt.hpp| rrtSearch(int treeSize): treeSize set"<<endl;
 
+        // initialize points in tree to be invisable, have -1 as a parent index and a null pointer as a parent pointer
         for(int i = 0; i<treeSize; i++)
         {
             tree[i].x = -WIDTH;
             tree[i].y = -WIDTH;
+            tree[i].index = i;
+            tree[i].parentIndex = -1;
+            // use a null pointer to cause a program crash (address NULL=0 is reserved for the OS) if uninited point is accessed. 
+            tree[i].parent = NULL;
+            cout<<" rrt.hpp| rrtSearch(int treeSize): tree["<<i<<"] inited"<<endl;
+
         }
+    cout<<" rrt.hpp| rrtSearch(int treeSize): constructor complete"<<endl;
     }
 
     
@@ -150,7 +151,7 @@ double pointDistance(point target)
 void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
     int length;
-    cout << "visMsgSybscriber received: " << msg->ns <<endl;
+    cout << "visMarkerCallback received: " << msg->ns <<endl;
 
     const std::string ns = msg->ns;
 
@@ -169,21 +170,22 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
     {
         // write to obst vec
         cout<<"rrt::vizMarkerCallback| is a obst"<<endl;
+        this->setObst(msg);
     }
     else if( ns == "Boundary")
     {
-        // write to obst vec
-        cout<<"rrt::vizMarkerCallback| is a Boundary"<<endl;
+        // write to boundary vec
+        //cout<<"rrt::vizMarkerCallback| is a Boundary"<<endl;
     }
     else if( ns == "vertices_and_lines")
     {
         // ignore
-        cout<<"rrt::vizMarkerCallback| is a vertices_and_lines"<<endl;
+        //cout<<"rrt::vizMarkerCallback| is a vertices_and_lines"<<endl;
     }
     else if( ns == "rob")
     {
         // maybe use for truthing
-        cout<<"rrt::vizMarkerCallback| is a rob"<<endl;
+        //cout<<"rrt::vizMarkerCallback| is a rob"<<endl;
     }
     else
     {
@@ -195,6 +197,24 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
 
 // rrtSearch member fxns
 
+void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
+{
+    obst = *newObst;// remember to dereffrence the message pointer into the visMsg it points to
+    //cout<<"rrtSearch::setObst: obst\n: "<<obst<<"\n"<<endl; // yup it's importing correctly. 
+    return;
+}
+
+
+void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
+{
+tree[0].x = newPoint->points[0].x;
+tree[0].y = newPoint->points[0].y;
+tree[0].parentIndex = 0; //start is it's own parent
+tree[0].parent = &tree[0]; 
+tree[1].x = newPoint->points[1].x;
+tree[1].y = newPoint->points[1].y;
+return;
+}
 
 void rrtSearch::randomEdge()
 {   
