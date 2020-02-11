@@ -345,4 +345,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-//};//this shouldn't have to be here. what is happening. IDE confirms it is unmatched
