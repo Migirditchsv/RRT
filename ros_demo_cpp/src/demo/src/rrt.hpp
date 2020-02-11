@@ -86,16 +86,14 @@ public:
     // public vars
 
     // public fxns
-    void setTreeSize(int _treeSize){treeSize = _treeSize;}
-    void setObst(const visualization_msgs::Marker::ConstPtr& newObst);
-    void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint); // = not defined for marker to point
+    void setTreeSize(uint _treeSize);
     void addRandomEdge();
 
     rrtSearch(int _treeSize)
     {
         cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
         setTreeSize(_treeSize);
-        tree.resize(2);
+        
     }
 
     
@@ -111,6 +109,8 @@ private:
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
     //private fxns
+    void setObst(const visualization_msgs::Marker::ConstPtr& newObst);
+    void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint); // = not defined for marker to point
     void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
     void addTreePoint();
     void validRandomPoint(int pointIndex);
@@ -130,22 +130,31 @@ double point::pointDistance(point target)
 
 // rrtSearch member fxns
 
+void rrtSearch::setTreeSize(uint newTreeSize)
+{
+    tree.resize(newTreeSize + 2);
+}
+
 void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 {
     int id, checkId, obstSize;
     bool newEntry;
+    visualization_msgs::Marker holder = *newObst;
 
-    id = *newObst.id;
+    //cout<<"rrtSearch::setObst: obstMsg:\n\n\n\n"<<holder.id<<endl;
+    id = holder.id;
     // check if novel
-    obstSize = sizeof(obst);
-    newEntry = false;
-    
-    for(int i = 0; i<obstSize; i++);
+    newEntry = true;
+    //cout<<"rrtSearch::setObst: SEG0"<<endl;
+    for(int i = 0; i<obst.size(); i++)
     {
         checkId = obst[i].id;
-        if(checkId==id){continue;}
-        else{obst.push_back(*newObst);}
+        if(checkId==id){newEntry=false;break;}
     }
+    if(newEntry)
+    {
+        //cout<<"rrtSearch::setObst: NEW OBSTICLE ID#: "<<id<<endl;
+        obst.push_back(holder);}
     return;
 }
 
@@ -206,7 +215,7 @@ void rrtSearch::addRandomEdge()
 void rrtSearch::validRandomPoint(int pointIndex)
 {
     double tempX, tempY, scaleX, scaleY, obstX, obstY, w;
-    int obstSize = sizeof(obst.points);
+    int obstSize = sizeof(obst);
     cout<<"rrtSearch::validRandomPoint: obstSize: "<<obstSize<<endl;
 
     for(int i = 0; i<PLACEMENT_TRIES; i++)
