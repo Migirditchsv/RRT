@@ -160,7 +160,7 @@ void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 
 
 void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
-{
+{ //weird that poitns are published in pointlists but obstacles are not published in object lists. 
     tree[0].x = newPoint->points[0].x;
     tree[0].y = newPoint->points[0].y;
     tree[0].parentIndex = 0; //start is it's own parent
@@ -215,42 +215,78 @@ void rrtSearch::addRandomEdge()
 void rrtSearch::validRandomPoint(int pointIndex)
 {
     double tempX, tempY, scaleX, scaleY, obstX, obstY, w;
-    int obstSize = sizeof(obst);
-    cout<<"rrtSearch::validRandomPoint: obstSize: "<<obstSize<<endl;
+    bool top, bottom, left, right;
+    //cout<<"rrtSearch::validRandomPoint: obstSize: "<<obst.size()<<endl;
 
     for(int i = 0; i<PLACEMENT_TRIES; i++)
     {
+        nextPoint:
         // Guess a point
         tempX = fRandom(-WIDTH,WIDTH);
         tempY = fRandom(-WIDTH,WIDTH);
+        bool collision = false;
+        cout<<"rrtSearch::validRandomPoint: x y: "<<tempX<<tempY<<endl;
 
-        for( int j = 0; j < obstSize; j++)
-        {/*
+        
+        // Loop through known objects
+        for( int j = 0; j < obst.size() ; j++)
+        {
             //get obj generic info
-            int objectType = obst.type;
-            double obstX = obst.pose.position.x;
-            double obstY = obst[i].pose.position.y;
+            int objectType = obst[j].type;
+            double obstX = obst[j].pose.position.x;
+            double obstY = obst[j].pose.position.y;
+
 
             switch(objectType)
             {
                 case 1: // Cube
 
-                scaleX = obst[i].scale.x / 2.0;
-                scaleY = obst[i].scale.y / 2.0;
+                scaleX = obst[j].scale.x / 2.0;
+                scaleY = obst[j].scale.y / 2.0;
 
                 // rotation check
-                if( obst[i].pose.orientation.w!=1.0)
+                if( obst[j].pose.orientation.w != 1.0 )
                 {
-                scaleX = 2.5;
-                scaleY = 0.3;
+                    scaleX = 2.5;
+                    scaleY = 0.3;
                 }
 
-            }
+                right = tempX < obstX + scaleX;
+                left = tempX > obstX - scaleX;
+                top = tempY < obstY + scaleY;
+                bottom = tempY > obstY - scaleY;
 
 
-        */}
-    }
-    return;
+                if( left and right and top and bottom )
+                {
+                    collision = true;
+                    goto nextPoint;
+                }
+
+                    break; // break case 1
+
+                default:
+                    cerr<<"rrtSearch::validRandomPoint: unkown object type. EXITING."<<endl;
+                    exit(0);
+                    break; // default
+
+            } // end switch
+
+
+        } // end object for
+
+        if(collision==false)
+        {
+            tree[pointIndex].x = tempX;
+            tree[pointIndex].y = tempY;
+            return;
+        }
+
+    } // end placement for
+
+    // Search has failed somehting is probably wrong
+    cerr<<"rrtSearch::validRandomPoint: VALID POINT SEARCH HAS FAILED. EXITING."<<endl;
+    exit(0);
 }
 
 bool rrtSearch::validEdge(int pointIndex)
@@ -261,18 +297,12 @@ bool rrtSearch::validEdge(int pointIndex)
 
 void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
-    int length;
-    cout << "visMarkerCallback received: " << msg->ns <<endl;
+    //cout << "visMarkerCallback received: " << msg->ns <<endl;
 
     const std::string ns = msg->ns;
 
    if( ns == "Goal Points")
    {    
-       length = msg->points.size();
-        // write to start and end pts
-        cout<<"rrt::vizMarkerCallback| is a goal"
-        <<"\n\tmsg->length:"<<length<<endl;
-
         // push to start and end points pointed to by constructor from rrtSolve. 
         this->setGoalPoints(msg);
 
@@ -280,7 +310,7 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
     else if( ns == "obstacles")
     {
         // write to obst vec
-        cout<<"rrt::vizMarkerCallback| is a obst:\n"<<*msg<<endl;
+        //cout<<"rrt::vizMarkerCallback| is a obst:\n"<<*msg<<endl;
         this->setObst(msg);
     }
     else if( ns == "Boundary")
