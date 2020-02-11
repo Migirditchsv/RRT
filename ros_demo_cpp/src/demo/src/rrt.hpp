@@ -19,6 +19,7 @@
 // Constants
 #define RANDOMSEED 1993
 #define WIDTH 10.0
+#define PLACEMENT_TRIES 100 // how many times to try placing a random pt outside of an obsticle before assuming something is wrong
 
 // Use namespaces
 using namespace std;
@@ -61,22 +62,21 @@ struct point
     double x,y; // position
     int index, parentIndex; // index for incluison in vector of points & index of parent. 
     point *parent; // pointer to unique parent
-    visualization_msgs::Marker obst; //need to link to rrtSearch value
 
     // Public Functions
-    void randomEdge();
-    int nearestNeighbor(vector<point> tree); // return index of nearest neighbor in tree
 
+    //constructor
+    point(int _x, int _y)
+    {
+        this -> x = _x;
+        this -> y = _y;
+        this -> index = -1;
+        this -> parentIndex = -1;
+        this -> parent = NULL;
+    }
     private:
-
-    
- 
-
     // Private fxns
-    void validPoint(visualization_msgs::Marker obst);
     double pointDistance(point target);
-
-
 };
 
 struct rrtSearch
@@ -89,28 +89,16 @@ public:
     void setTreeSize(int _treeSize){treeSize = _treeSize;}
     void setObst(const visualization_msgs::Marker::ConstPtr& newObst);
     void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint); // = not defined for marker to point
-    void randomEdge();
+    void addRandomEdge();
 
     rrtSearch(int _treeSize)
     {
         cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
         setTreeSize(_treeSize);
-        tree.resize(treeSize);
+        tree.resize(2);
         cout<<" rrt.hpp| rrtSearch(int treeSize): treeSize set"<<endl;
 
-        // initialize points in tree to be invisable, have -1 as a parent index and a null pointer as a parent pointer
-        for(int i = 0; i<treeSize; i++)
-        {
-            tree[i].x = -WIDTH;
-            tree[i].y = -WIDTH;
-            tree[i].index = i;
-            tree[i].parentIndex = -1;
-            // use a null pointer to cause a program crash (address NULL=0 is reserved for the OS) if uninited point is accessed. 
-            tree[i].parent = NULL;
-            cout<<" rrt.hpp| rrtSearch(int treeSize): tree["<<i<<"] inited"<<endl;
-
-        }
-    cout<<" rrt.hpp| rrtSearch(int treeSize): constructor complete"<<endl;
+        cout<<" rrt.hpp| rrtSearch(int treeSize): constructor complete"<<endl;
     }
 
     
@@ -125,6 +113,8 @@ private:
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
     void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
+    void validRandomPoint(int pointIndx);
+    void addPointToTree();
 };
 
 // Point Functions
@@ -216,8 +206,52 @@ tree[1].y = newPoint->points[1].y;
 return;
 }
 
-void rrtSearch::randomEdge()
+void rrtSearch::addRandomEdge()
 {   
+    // find a valid random point
+    this -> validRandomPoint(); //*** resume here
+}
+
+void rrtSearch::validRandomPoint(int pointIndx)
+{
+    double tempX, tempY;
+    int obstSize = sizeof(obst.points);
+    cout<<"rrtSearch::validRandomPoint: obstSize: "<<obstSize<<endl;
+
+    for(int i = 0; i<PLACEMENT_TRIES; i++)
+    {
+        // Guess a point
+        tempX = fRandom(-WIDTH,WIDTH);
+        tempY = fRandom(-WIDTH,WIDTH);
+
+        for( int j = 0; j < obstSize; j++)
+        {
+            int objectType = obst.type;
+
+        }
+
+}
+
+void addTreePoint()
+{
+    int currentTreeSize = sizeof(this.tree);
+    // makesure we have points to add.
+    if(currentTreeSize >= treeSize)
+    {
+        cerr<<"rrtSearch::addTreePoint: OUT OF POINTS TO ADD. SEARCH FAILED."<<endl;
+        exit(0);
+    }
+    // add point to tree
+    point newPoint;
+    this.tree.push_back()
+    // initialize points in tree to be invisable, have -1 as a parent index and a null pointer as a parent pointer
+    tree[i].x = -WIDTH;
+    tree[i].y = -WIDTH;
+    tree[i].index = i;
+    tree[i].parentIndex = -1;
+    // use a null pointer to cause a program crash (address NULL=0 is reserved for the OS) if uninited point is accessed. 
+    tree[i].parent = NULL;
+    cout<<" rrt.hpp| rrtSearch(int treeSize): tree["<<i<<"] inited"<<endl;
 
 }
 
