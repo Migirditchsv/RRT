@@ -17,9 +17,10 @@
 #include <sstream>
 
 // Constants
-#define RANDOMSEED 1993
+#define RANDOMSEED 19937
 #define WIDTH 10.0
 #define PLACEMENT_TRIES 100 // how many times to try placing a random pt outside of an obsticle before assuming something is wrong
+#define EPSILON 0.001 // stepsize for clipping
 
 // Use namespaces
 using namespace std;
@@ -96,6 +97,11 @@ public:
         setTreeSize(_treeSize);
 
         complete = false; //start incomplete        
+    }
+
+    ~rrtSearch()
+    {
+        cout<<"\n\n\n\n WARNING RRTSEARCH STRUCT DESTROYED \n\n\n\n"<<endl;
     }
 
     
@@ -217,22 +223,22 @@ void rrtSearch::addEdge()
     int newPointIndex, nearPointIndex;
     int tries = 0;
     bool success = false;
-
-    // get index of newPoint
-    newPointIndex = sizeof(tree);
-    // attempt create the point to place, exits if out of points
-    this -> addTreePoint();
-    // find a valid random point
-    this -> validRandomPoint(newPointIndex);
-    // find nearest point to random point
-    nearPointIndex = this -> nearestNeighbor(newPointIndex);
-    success = validEdge(nearPointIndex, newPointIndex);
+cout<<"RRT SEG -1"<<endl;
     while( !success && tries < 5)
     {
-        // assign parent
-        // assign indicies 
-        // create and push visMsg to rviz
-        // check for endstate
+        // get index of newPoint
+        newPointIndex = sizeof(tree);
+        // attempt create the point to place, exits if out of points
+        this -> addTreePoint();
+        // find a valid random point
+        cout<<"RRT SEG 0"<<endl;
+        this -> validRandomPoint(newPointIndex);
+        // find nearest point to random point
+        nearPointIndex = this -> nearestNeighbor(newPointIndex);
+        cout<<"RRT SEG 1"<<endl;
+        success = validEdge(nearPointIndex, newPointIndex);
+        cout<<"RRT SEG 2"<<endl;
+        //cout<<"\n\n rrt.hpp| SEG FLAG 0 \n"<<endl;
         tries++;
     }
     if(!success)
@@ -240,10 +246,14 @@ void rrtSearch::addEdge()
         cerr<<"rrtSearch::addEdge() ERROR: UNABLE TO FIND INTER-POINT PATHS AFTER 5 ATTEMPTS. ABORTING"<<endl;
         exit(0);
     }
+    // assign parent
+    // assign indicies 
+    // create and push visMsg to rviz
+    // check for endstate
     return;
 }
 
-bool rrtSearch::validPoint(int pointIndex)
+bool rrtSearch::validPoint(int pointIndex) //return true if legal positoin false if else
 {
     double dist, scaleX, scaleY, obstX, obstY;
     bool top, bottom, left, right;
@@ -281,7 +291,8 @@ bool rrtSearch::validPoint(int pointIndex)
 
 
             if( left and right and top and bottom )
-            {
+            {   
+                cout<<"rrtSearch::validPoint COLLISION CUBE # "<<j<<endl;
                 return(false);
             }
             break; // break case 1 Cube
@@ -292,21 +303,25 @@ bool rrtSearch::validPoint(int pointIndex)
             dist = sqrt( pow(x - obstX, 2 ) + pow(y - obstY,2 ) );
             if( dist <= scaleX )
             {
+                cout<<"rrtSearch::validPoint COLLISION CYL # "<<j<<endl;
                 return(false);
             }
+            break;
 
             default:
-                cerr<<"rrtSearch::validRandomPoint: unkown object type. EXITING."<<endl;
+                cerr<<"rrtSearch::validRandomPoint: unkown object type: "<< objectType <<". EXITING."<<endl;
                 exit(0);
-                break; // default
+            break; // default
 
         } // end switch
     } // end object for
+    //cout<<"rrtSearch::validPoint POINT CLEAR OF ALL "<<obst.size()<<" OBSTACLES"<<endl;
     return(true);
 }
 
 void rrtSearch::validRandomPoint(int pointIndex)
 {
+    bool valid;
     double tempX, tempY;
     //cout<<"rrtSearch::validRandomPoint: obstSize: "<<obst.size()<<endl;
 
@@ -314,18 +329,14 @@ void rrtSearch::validRandomPoint(int pointIndex)
     {
         nextPoint:
         // Guess a point
-        tempX = fRandom(-WIDTH,WIDTH);
-        tempY = fRandom(-WIDTH,WIDTH);
-        bool collision = false;
-        cout<<"rrtSearch::validRandomPoint: x y: "<<tempX<<tempY<<endl;
+        tree[pointIndex].x = fRandom(-WIDTH,WIDTH);
+        tree[pointIndex].y = fRandom(-WIDTH,WIDTH);
 
-        
-        
+        valid = this -> validPoint(pointIndex);
+        //cout<<"rrtSearch::validRandomPoint: x y: "<<tree[pointIndex].x<<","<<tree[pointIndex].y<<" valid = "<< valid <<endl;
 
-        if(collision==false)
+        if(valid)
         {
-            tree[pointIndex].x = tempX;
-            tree[pointIndex].y = tempY;
             return;
         }
 
@@ -336,11 +347,55 @@ void rrtSearch::validRandomPoint(int pointIndex)
     exit(0);
 }
 
-bool rrtSearch::validEdge(int nearIndex, int newIndex)
+bool rrtSearch::validEdge(int nearIndex, int newIndex) // moves newIndex to a legal edge position along near-new ray, deletes new if no such ray exists
 {
-    bool firstStepFlag = false;
+    bool edgeValidity;
+    int steps;
+    double scale, dx, dy, startX, startY;
+
+    dx = tree[newIndex].x - tree[nearIndex].x;
+    dy = tree[newIndex].y - tree[nearIndex].y;
+
+    startX = tree[nearIndex].x;
+    startY = tree[nearIndex].y;
+
+
+    steps = tree[nearIndex].pointDistance( tree[newIndex] ) / EPSILON;
+    steps = min(steps, 2); // zero guard
+
+    for(int i = 1; i<=steps; i++)// i=1 don't want initial overlap
+    {
+        scale = ( (double) i / (double) steps );
+
+        // scale out to new point
+        tree[newIndex].x = ( scale * dx ) + startX;
+        tree[newIndex].y = ( scale * dy ) + startY;
+
+        // check point validity
+        edgeValidity = this -> validPoint(newIndex);
+
+        // if edge fails go to previous point, if first point, delete newIndex and return false
+        if( !edgeValidity )
+        {
+            if( i == 1 )
+            {
+                cout<<"\n\n\nrrtSearch::validEdge NO LEGAL EDGES EXIST. DISCARDING POINT "<<newIndex<<endl;
+                tree.erase( tree.begin() + newIndex ); //this is not causeing the double free, it occurs when // out
+                return(false);
+            }
+            else
+            {
+                scale = ( (double) (i-1) / (double) steps );    
+                // scale out to new point
+                tree[newIndex].x = ( scale * dx ) + startX;
+                tree[newIndex].y = ( scale * dy ) + startY;
+                return(true);
+            }
+        }
+
+    } // full ray is valid
     
-    return( false );// holder
+    return( true );// holder
 }
 
 

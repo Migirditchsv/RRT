@@ -20,6 +20,7 @@ Last update: 9/10/2019
 // defines
 #define RRT_MAX_NODES 2000
 
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "ros_demo");
@@ -313,10 +314,10 @@ int main(int argc, char **argv)
 
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
-
-
+  
   static rrtSearch rrt(RRT_MAX_NODES);
-  std::cout<<"MAIN::TODO graphsize: "<<rrt.getTreeSize()<<std::endl;
+  
+  //std::cout<<"MAIN::TODO graphsize: "<<rrt.getTreeSize()<<std::endl;
   if(!rrt.complete){rrt.addEdge();}
   // elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
 
