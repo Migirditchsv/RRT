@@ -64,6 +64,7 @@ struct point
     point *parent; // pointer to unique parent
 
     // Public Functions
+    double pointDistance(point target);
 
     //constructor
     point()
@@ -76,7 +77,6 @@ struct point
     }
     private:
     // Private fxns
-    double pointDistance(point target);
 };
 
 struct rrtSearch
@@ -84,16 +84,18 @@ struct rrtSearch
 
 public:
     // public vars
-
+    bool complete;
     // public fxns
-    void setTreeSize(uint _treeSize);
-    void addRandomEdge();
+    void setTreeSize(uint _treeSize){ treeSize = _treeSize; }
+    int getTreeSize(){return( tree.size() );}
+    void addEdge();
 
     rrtSearch(int _treeSize)
     {
         cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
         setTreeSize(_treeSize);
-        
+
+        complete = false; //start incomplete        
     }
 
     
@@ -113,8 +115,9 @@ private:
     void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint); // = not defined for marker to point
     void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
     void addTreePoint();
+    bool validPoint(int pointIndex);
     void validRandomPoint(int pointIndex);
-    bool validEdge(int pointIndex); // returns 0 if edge fails
+    bool validEdge(int nearPointIndex, int newPointIndex); // returns 0 if edge fails
     int  nearestNeighbor(int pointIndex); // nearest in tree
  
 };
@@ -129,11 +132,6 @@ double point::pointDistance(point target)
 }
 
 // rrtSearch member fxns
-
-void rrtSearch::setTreeSize(uint newTreeSize)
-{
-    tree.resize(newTreeSize + 2);
-}
 
 void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 {
@@ -172,17 +170,32 @@ void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoi
 
 int rrtSearch::nearestNeighbor(int pointIndex)
 {   
+    int nearestIndex = -1; //segfault if no nearest
+    double dist;
+    double minDist = MAXFLOAT;
+
+    for( int i = 0; i < tree.size(); i++)
+    {
+        // don't compare to self
+        if( i ==  pointIndex ){continue;}
+        dist = tree[pointIndex].pointDistance(tree[i]);
+        if( dist <= minDist )
+        {
+            minDist = dist;
+            nearestIndex = i;
+        }
+    }
     
-    return(0);
+    return(nearestIndex);
 }
 
 void rrtSearch::addTreePoint()
 {
-    int position = sizeof(this -> tree);
+    int position = tree.size();
     // makesure we have points to add.
     if(position >= treeSize)
     {
-        cerr<<"rrtSearch::addTreePoint: OUT OF POINTS TO ADD. SEARCH FAILED."<<endl;
+        cerr<<"rrtSearch::addTreePoint: OUT OF POINTS TO ADD. SEARCH FAILED. TREE SIZE:"<<position<<endl;
         exit(0);
     }
     // add point to tree
@@ -199,23 +212,102 @@ void rrtSearch::addTreePoint()
     return;
 }
 
-void rrtSearch::addRandomEdge()
+void rrtSearch::addEdge()
 {   
-    int newPointIndex;
+    int newPointIndex, nearPointIndex;
+    int tries = 0;
+    bool success = false;
 
-    // attempt create the point to place
-    this -> addTreePoint();
     // get index of newPoint
-    newPointIndex = sizeof(tree) - 1;
+    newPointIndex = sizeof(tree);
+    // attempt create the point to place, exits if out of points
+    this -> addTreePoint();
     // find a valid random point
     this -> validRandomPoint(newPointIndex);
+    // find nearest point to random point
+    nearPointIndex = this -> nearestNeighbor(newPointIndex);
+    success = validEdge(nearPointIndex, newPointIndex);
+    while( !success && tries < 5)
+    {
+        // assign parent
+        // assign indicies 
+        // create and push visMsg to rviz
+        // check for endstate
+        tries++;
+    }
+    if(!success)
+    {
+        cerr<<"rrtSearch::addEdge() ERROR: UNABLE TO FIND INTER-POINT PATHS AFTER 5 ATTEMPTS. ABORTING"<<endl;
+        exit(0);
+    }
     return;
+}
+
+bool rrtSearch::validPoint(int pointIndex)
+{
+    double dist, scaleX, scaleY, obstX, obstY;
+    bool top, bottom, left, right;
+    // shorthand pointIndex's coords
+    double x = tree[pointIndex].x;
+    double y = tree[pointIndex].y;
+
+    // Loop through known objects
+    for( int j = 0; j < obst.size() ; j++)
+    {
+        //get obj generic info
+        int objectType = obst[j].type;
+        double obstX = obst[j].pose.position.x;
+        double obstY = obst[j].pose.position.y;
+
+
+        switch(objectType)
+        {
+            case 1: // Cube
+
+            scaleX = obst[j].scale.x / 2.0;
+            scaleY = obst[j].scale.y / 2.0;
+
+            // rotation check
+            if( obst[j].pose.orientation.w != 1.0 )
+            {
+                scaleX = 2.5;
+                scaleY = 0.3;
+            }
+
+            right = x < obstX + scaleX;
+            left = x > obstX - scaleX;
+            top = y < obstY + scaleY;
+            bottom = y > obstY - scaleY;
+
+
+            if( left and right and top and bottom )
+            {
+                return(false);
+            }
+            break; // break case 1 Cube
+
+            case 3: // cyl
+
+            scaleX = obst[j].scale.x / 2.0;
+            dist = sqrt( pow(x - obstX, 2 ) + pow(y - obstY,2 ) );
+            if( dist <= scaleX )
+            {
+                return(false);
+            }
+
+            default:
+                cerr<<"rrtSearch::validRandomPoint: unkown object type. EXITING."<<endl;
+                exit(0);
+                break; // default
+
+        } // end switch
+    } // end object for
+    return(true);
 }
 
 void rrtSearch::validRandomPoint(int pointIndex)
 {
-    double tempX, tempY, scaleX, scaleY, obstX, obstY, w;
-    bool top, bottom, left, right;
+    double tempX, tempY;
     //cout<<"rrtSearch::validRandomPoint: obstSize: "<<obst.size()<<endl;
 
     for(int i = 0; i<PLACEMENT_TRIES; i++)
@@ -228,52 +320,7 @@ void rrtSearch::validRandomPoint(int pointIndex)
         cout<<"rrtSearch::validRandomPoint: x y: "<<tempX<<tempY<<endl;
 
         
-        // Loop through known objects
-        for( int j = 0; j < obst.size() ; j++)
-        {
-            //get obj generic info
-            int objectType = obst[j].type;
-            double obstX = obst[j].pose.position.x;
-            double obstY = obst[j].pose.position.y;
-
-
-            switch(objectType)
-            {
-                case 1: // Cube
-
-                scaleX = obst[j].scale.x / 2.0;
-                scaleY = obst[j].scale.y / 2.0;
-
-                // rotation check
-                if( obst[j].pose.orientation.w != 1.0 )
-                {
-                    scaleX = 2.5;
-                    scaleY = 0.3;
-                }
-
-                right = tempX < obstX + scaleX;
-                left = tempX > obstX - scaleX;
-                top = tempY < obstY + scaleY;
-                bottom = tempY > obstY - scaleY;
-
-
-                if( left and right and top and bottom )
-                {
-                    collision = true;
-                    goto nextPoint;
-                }
-
-                    break; // break case 1
-
-                default:
-                    cerr<<"rrtSearch::validRandomPoint: unkown object type. EXITING."<<endl;
-                    exit(0);
-                    break; // default
-
-            } // end switch
-
-
-        } // end object for
+        
 
         if(collision==false)
         {
@@ -289,8 +336,10 @@ void rrtSearch::validRandomPoint(int pointIndex)
     exit(0);
 }
 
-bool rrtSearch::validEdge(int pointIndex)
+bool rrtSearch::validEdge(int nearIndex, int newIndex)
 {
+    bool firstStepFlag = false;
+    
     return( false );// holder
 }
 
@@ -303,19 +352,15 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
 
    if( ns == "Goal Points")
    {    
-        // push to start and end points pointed to by constructor from rrtSolve. 
         this->setGoalPoints(msg);
-
    }
     else if( ns == "obstacles")
     {
-        // write to obst vec
-        //cout<<"rrt::vizMarkerCallback| is a obst:\n"<<*msg<<endl;
         this->setObst(msg);
     }
     else if( ns == "Boundary")
     {
-        // write to boundary vec
+        // ignore
         //cout<<"rrt::vizMarkerCallback| is a Boundary"<<endl;
     }
     else if( ns == "vertices_and_lines")

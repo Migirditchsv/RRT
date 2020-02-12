@@ -315,10 +315,9 @@ int main(int argc, char **argv)
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
 
 
-  int result = testFunction(99);
-  std::cout<<" \n loop \n"<<std::endl;
   static rrtSearch rrt(RRT_MAX_NODES);
-  // if(!rrt.complete){rrt.addEdge();}
+  std::cout<<"MAIN::TODO graphsize: "<<rrt.getTreeSize()<<std::endl;
+  if(!rrt.complete){rrt.addEdge();}
   // elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
 
 
