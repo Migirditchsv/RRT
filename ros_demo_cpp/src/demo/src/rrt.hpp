@@ -84,6 +84,8 @@ struct rrtSearch
 {
 
 public:
+    // Public Objects
+    ros::NodeHandle rrt_node;
     // public vars
     bool complete;
     // public fxns
@@ -112,8 +114,7 @@ private:
     vector<visualization_msgs::Marker> obst;
     vector<point> tree; // where it all happens.
     vector<int> shortestPath;
-    ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe<visualization_msgs::Marker>("visualization_marker", 100, &rrtSearch::visMarkerCallback,this);
+    ros::Subscriber sub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 100, &rrtSearch::visMarkerCallback,this);
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
     //private fxns
@@ -250,6 +251,7 @@ cout<<"RRT SEG -1"<<endl;
     // assign indicies 
     // create and push visMsg to rviz
     // check for endstate
+    cout<<"RRT SEG 3"<<endl;
     return;
 }
 
