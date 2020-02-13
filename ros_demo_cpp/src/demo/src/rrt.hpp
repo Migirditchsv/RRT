@@ -271,6 +271,7 @@ bool rrtSearch::validPoint(int pointIndex) //return true if legal positoin false
         double obstX = obst[j].pose.position.x;
         double obstY = obst[j].pose.position.y;
 
+        cout<<"\n\n Obst:\n\n"<<obst[j]<<endl;
 
         switch(objectType)
         {
@@ -311,7 +312,7 @@ bool rrtSearch::validPoint(int pointIndex) //return true if legal positoin false
             break;
 
             default:
-                cerr<<"rrtSearch::validRandomPoint: unkown object type: "<< objectType <<". EXITING."<<endl;
+                cerr<<"rrtSearch::validPoint: obst[j="<<j<<"] unknown object type: "<< objectType <<". EXITING."<<endl;
                 exit(0);
             break; // default
 
@@ -426,13 +427,12 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
         //cout<<"rrt::vizMarkerCallback| is a vertices_and_lines"<<endl;
     }
     else if( ns == "rob")
-    {
+    {   
         // maybe use for truthing
-        //cout<<"rrt::vizMarkerCallback| is a rob"<<endl;
     }
     else
     {
-        cerr<<"rrt::visMarkerCallback ERROR: msg->ns of unknown category:"<<ns<<endl;
+        cerr<<"rrt::visMarkerCallback ERROR: msg->ns of unknown namespace:"<<ns<<endl;
         exit(0);
     }
     return;
