@@ -144,6 +144,8 @@ void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 {
     int id, checkId, obstSize;
     bool newEntry;
+
+
     visualization_msgs::Marker holder = *newObst;
 
     //cout<<"rrtSearch::setObst: obstMsg:\n\n\n\n"<<holder.id<<endl;
@@ -165,7 +167,8 @@ void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 
 
 void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
-{ //weird that poitns are published in pointlists but obstacles are not published in object lists. 
+{
+
     tree[0].x = newPoint->points[0].x;
     tree[0].y = newPoint->points[0].y;
     tree[0].parentIndex = 0; //start is it's own parent
@@ -223,7 +226,7 @@ void rrtSearch::addEdge()
 {   
     int newPointIndex, nearPointIndex;
     int tries = 0;
-    bool success = false;
+    bool pathComplete, nodeLimit, success = false;
 cout<<"RRT SEG -1"<<endl;
     while( !success && tries < 5)
     {
@@ -250,8 +253,10 @@ cout<<"RRT SEG -1"<<endl;
     // assign parent
     // assign indicies 
     // create and push visMsg to rviz
-    // check for endstate
-    cout<<"RRT SEG 3"<<endl;
+    // check for completion
+    nodeLimit = tree.size() > treeSize;
+    pathComplete = tree[1].parent != NULL;
+    if( nodeLimit or pathComplete){this -> complete = true;}
     return;
 }
 
@@ -405,13 +410,14 @@ bool rrtSearch::validEdge(int nearIndex, int newIndex) // moves newIndex to a le
 void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
     //cout << "visMarkerCallback received: " << msg->ns <<endl;
-
+    // check for null pointer,then copy in
+    if( msg == NULL ){return;}
     const std::string ns = msg->ns;
 
-   if( ns == "Goal Points")
-   {    
+    if( ns == "Goal Points")
+    {    
         this->setGoalPoints(msg);
-   }
+    }
     else if( ns == "obstacles")
     {
         this->setObst(msg);
