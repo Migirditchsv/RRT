@@ -84,8 +84,6 @@ struct rrtSearch
 {
 
 public:
-    // Public Objects
-    ros::NodeHandle rrt_node;
     // public vars
     bool complete;
     // public fxns
@@ -114,7 +112,8 @@ private:
     vector<visualization_msgs::Marker> obst;
     vector<point> tree; // where it all happens.
     vector<int> shortestPath;
-    ros::Subscriber sub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 100, &rrtSearch::visMarkerCallback,this);
+    ros::NodeHandle rrt_node;
+    ros::Subscriber sub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 2, &rrtSearch::visMarkerCallback,this);
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
     //private fxns
