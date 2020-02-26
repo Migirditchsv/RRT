@@ -111,11 +111,14 @@ private:
     // private objects
     vector<visualization_msgs::Marker> obst;
     vector<point> tree; // where it all happens.
+    point goalPoint; 
     vector<int> shortestPath;
     ros::NodeHandle rrt_node;
-    ros::Subscriber sub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 2, &rrtSearch::visMarkerCallback,this);
+    ros::Subscriber sub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 15, &rrtSearch::visMarkerCallback,this);
+    ros::Publisher pub = rrt_node.advertise<visualization_msgs::Marker>("visualization_marker", 10);
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
+    visualization_msgs::Marker lineList; //how the tree is published
     //private fxns
     void setObst(const visualization_msgs::Marker::ConstPtr& newObst);
     void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint); // = not defined for marker to point
@@ -125,6 +128,7 @@ private:
     void validRandomPoint(int pointIndex);
     bool validEdge(int nearPointIndex, int newPointIndex); // returns 0 if edge fails
     int  nearestNeighbor(int pointIndex); // nearest in tree
+    void generateLineList();
  
 };
 
@@ -172,14 +176,14 @@ void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoi
     tree[0].y = newPoint->points[0].y;
     tree[0].parentIndex = 0; //start is it's own parent
     tree[0].parent = &tree[0]; 
-    tree[1].x = newPoint->points[1].x;
-    tree[1].y = newPoint->points[1].y;
+    goalPoint.x = newPoint->points[1].x;
+    goalPoint.y = newPoint->points[1].y;
     return;
 }
 
 int rrtSearch::nearestNeighbor(int pointIndex)
 {   
-    int nearestIndex = -1; //segfault if no nearest
+    int nearestIndex = -1; //to warn if no nearest
     double dist;
     double minDist = MAXFLOAT;
 
@@ -195,6 +199,12 @@ int rrtSearch::nearestNeighbor(int pointIndex)
         }
     }
     
+    if(nearestIndex == -1)
+    {
+        cerr<<"rrtSearch::No Nearest Neighbor Found For Point Index: "<<pointIndex<<endl;
+        exit(0);
+    }
+
     return(nearestIndex);
 }
 
@@ -226,7 +236,6 @@ void rrtSearch::addEdge()
     int newPointIndex, nearPointIndex;
     int tries = 0;
     bool pathComplete, nodeLimit, success = false;
-cout<<"RRT SEG -1"<<endl;
     while( !success && tries < 5)
     {
         // get index of newPoint
@@ -234,14 +243,10 @@ cout<<"RRT SEG -1"<<endl;
         // attempt create the point to place, exits if out of points
         this -> addTreePoint();
         // find a valid random point
-        cout<<"RRT SEG 0"<<endl;
         this -> validRandomPoint(newPointIndex);
         // find nearest point to random point
         nearPointIndex = this -> nearestNeighbor(newPointIndex);
-        cout<<"RRT SEG 1"<<endl;
         success = validEdge(nearPointIndex, newPointIndex);
-        cout<<"RRT SEG 2"<<endl;
-        //cout<<"\n\n rrt.hpp| SEG FLAG 0 \n"<<endl;
         tries++;
     }
     if(!success)
@@ -249,13 +254,21 @@ cout<<"RRT SEG -1"<<endl;
         cerr<<"rrtSearch::addEdge() ERROR: UNABLE TO FIND INTER-POINT PATHS AFTER 5 ATTEMPTS. ABORTING"<<endl;
         exit(0);
     }
+
     // assign parent
+    tree[newPointIndex].parent = &tree[nearPointIndex];
     // assign indicies 
-    // create and push visMsg to rviz
+    tree[newPointIndex].parentIndex = nearPointIndex;
+    // check for goalPoint reach
+
     // check for completion
     nodeLimit = tree.size() > treeSize;
-    pathComplete = tree[1].parent != NULL;
+    pathComplete = goalPoint.parent != NULL;
     if( nodeLimit or pathComplete){this -> complete = true;}
+    // create and push visMsg to rviz
+    generateLineList();
+    pub.publish(lineList);
+    // done
     return;
 }
 
@@ -384,16 +397,16 @@ bool rrtSearch::validEdge(int nearIndex, int newIndex) // moves newIndex to a le
         // if edge fails go to previous point, if first point, delete newIndex and return false
         if( !edgeValidity )
         {
-            if( i == 1 )
+            if( i == 1 ) //first step fails
             {
                 cout<<"\n\n\nrrtSearch::validEdge NO LEGAL EDGES EXIST. DISCARDING POINT "<<newIndex<<endl;
                 tree.erase( tree.begin() + newIndex ); //this is not causeing the double free, it occurs when // out
                 return(false);
             }
-            else
+            else // partial ray is valid
             {
                 scale = ( (double) (i-1) / (double) steps );    
-                // scale out to new point
+                // scale back to previous point
                 tree[newIndex].x = ( scale * dx ) + startX;
                 tree[newIndex].y = ( scale * dy ) + startY;
                 return(true);
@@ -435,6 +448,11 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
     {   
         // maybe use for truthing
     }
+     else if( ns == "searchTree")
+    {   
+        // skip
+        return;
+    }
     else
     {
         cerr<<"rrt::visMarkerCallback ERROR: msg->ns of unknown namespace:"<<ns<<endl;
@@ -443,5 +461,38 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
     return;
 }
 
+void rrtSearch::generateLineList()
+{
+    int parentIndex;
+    geometry_msgs::Point parent, child;
 
-#endif
+    // prep message [ move to rrtconstructor ]
+    lineList.header.frame_id = "map";
+    lineList.header.stamp = ros::Time();
+    lineList.ns = "searchTree";
+    lineList.id = 0;
+    lineList.type = visualization_msgs::Marker::LINE_LIST;
+    lineList.action = visualization_msgs::Marker::ADD;
+
+    // set points z
+    parent.z = 0.0;
+    child.z  = 0.0;
+
+    for(int childIndex = 0; childIndex<tree.size(); childIndex++ )
+    {
+        parentIndex = tree[childIndex].parentIndex;
+        if( parentIndex == childIndex ){continue;}
+        parent.x = tree[childIndex].x;
+        parent.y = tree[childIndex].y;
+        child.x = tree[childIndex].x;
+        child.y = tree[childIndex].y;
+
+        lineList.points.push_back(parent);
+        lineList.points.push_back(child);
+    }
+
+    return;
+}
+
+
+#endif //EOF
