@@ -96,6 +96,23 @@ public:
         cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
         setTreeSize(_treeSize);
 
+        // set published line list qualities
+            // prep message [ move to rrtconstructor ]
+            lineList.header.frame_id = "map";
+            lineList.header.stamp = ros::Time();
+            lineList.ns = "searchTree";
+            lineList.id = 666;
+            lineList.type = visualization_msgs::Marker::LINE_LIST;
+            lineList.action = visualization_msgs::Marker::ADD;
+            // pose
+            lineList.pose.orientation.w = 1.0;
+            // scale
+            lineList.scale.x = 0.02;
+            // Points are green
+            lineList.color.g = 1.0f;
+            lineList.color.a = 1.0;
+
+
         complete = false; //start incomplete        
     }
 
@@ -236,17 +253,25 @@ void rrtSearch::addEdge()
     int newPointIndex, nearPointIndex;
     int tries = 0;
     bool pathComplete, nodeLimit, success = false;
+    cout<<" rrt.hpp| addEdge(): Starting"<<endl;
     while( !success && tries < 5)
     {
         // get index of newPoint
         newPointIndex = sizeof(tree);
+        cout<<" rrt.hpp| addEdge(): newPointIndex: "<<newPointIndex<<endl;
         // attempt create the point to place, exits if out of points
         this -> addTreePoint();
+        cout<<" rrt.hpp| addEdge(): point added"<<endl;
         // find a valid random point
         this -> validRandomPoint(newPointIndex);
+        cout<<" rrt.hpp| addEdge(): point Validated"<<endl;
         // find nearest point to random point
         nearPointIndex = this -> nearestNeighbor(newPointIndex);
+        cout<<" rrt.hpp| addEdge()): Starting"<<endl;
+        
         success = validEdge(nearPointIndex, newPointIndex);
+        cout<<" rrt.hpp| addEdge()): Starting"<<endl;
+        
         tries++;
     }
     if(!success)
@@ -257,17 +282,22 @@ void rrtSearch::addEdge()
 
     // assign parent
     tree[newPointIndex].parent = &tree[nearPointIndex];
+    cout<<" rrt.hpp| addEdge()): parrent assigned"<<endl;
     // assign indicies 
     tree[newPointIndex].parentIndex = nearPointIndex;
+    cout<<" rrt.hpp| addEdge()): parent index assigned"<<endl;
     // check for goalPoint reach
 
     // check for completion
     nodeLimit = tree.size() > treeSize;
     pathComplete = goalPoint.parent != NULL;
     if( nodeLimit or pathComplete){this -> complete = true;}
+    cout<<" rrt.hpp| addEdge()): Complete check complete"<<endl;
     // create and push visMsg to rviz
     generateLineList();
+    cout<<" rrt.hpp| addEdge()): line_list generated"<<endl;
     pub.publish(lineList);
+    cout<<" rrt.hpp| addEdge()): line_list published"<<endl;
     // done
     return;
 }
@@ -287,8 +317,6 @@ bool rrtSearch::validPoint(int pointIndex) //return true if legal positoin false
         int objectType = obst[j].type;
         double obstX = obst[j].pose.position.x;
         double obstY = obst[j].pose.position.y;
-
-        cout<<"\n\n Obst:\n\n"<<obst[j]<<endl;
 
         switch(objectType)
         {
@@ -400,7 +428,7 @@ bool rrtSearch::validEdge(int nearIndex, int newIndex) // moves newIndex to a le
             if( i == 1 ) //first step fails
             {
                 cout<<"\n\n\nrrtSearch::validEdge NO LEGAL EDGES EXIST. DISCARDING POINT "<<newIndex<<endl;
-                //tree.erase( tree.begin() + newIndex ); //this is not causeing the double free, it occurs when // out
+                tree.erase( tree.begin() + newIndex ); //this is not causeing the double free, it occurs when // out
                 return(false);
             }
             else // partial ray is valid
@@ -465,14 +493,6 @@ void rrtSearch::generateLineList()
 {
     int parentIndex;
     geometry_msgs::Point parent, child;
-
-    // prep message [ move to rrtconstructor ]
-    lineList.header.frame_id = "map";
-    lineList.header.stamp = ros::Time();
-    lineList.ns = "searchTree";
-    lineList.id = 0;
-    lineList.type = visualization_msgs::Marker::LINE_LIST;
-    lineList.action = visualization_msgs::Marker::ADD;
 
     // set points z
     parent.z = 0.0;

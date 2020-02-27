@@ -351,7 +351,6 @@ std::cout<<"MAIN SEG 5"<<std::endl;
 
 
     ++frame_count;
-std::cout<<"MAIN SEG 6"<<std::endl;
   }
 
   return 0;
