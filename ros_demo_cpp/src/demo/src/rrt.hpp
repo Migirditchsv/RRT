@@ -387,7 +387,7 @@ bool rrtSearch::validEdge(int nearIndex, int newIndex) // moves newIndex to a le
             if( i == 1 )
             {
                 cout<<"\n\n\nrrtSearch::validEdge NO LEGAL EDGES EXIST. DISCARDING POINT "<<newIndex<<endl;
-                tree.erase( tree.begin() + newIndex ); //this is not causeing the double free, it occurs when // out
+                //tree.erase( tree.begin() + newIndex ); //this is not causeing the double free, it occurs when // out
                 return(false);
             }
             else

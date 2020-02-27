@@ -347,8 +347,11 @@ std::cout<<"MAIN SEG 3"<<std::endl;
 std::cout<<"MAIN SEG 4"<<std::endl;
     //leave some time interval between two frame refreshing
     loop_rate.sleep();
+std::cout<<"MAIN SEG 5"<<std::endl;
+
 
     ++frame_count;
+std::cout<<"MAIN SEG 6"<<std::endl;
   }
 
   return 0;
