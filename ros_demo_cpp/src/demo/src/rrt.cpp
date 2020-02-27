@@ -20,10 +20,8 @@
 #define RANDOMSEED 19937
 #define WIDTH 10.0
 #define PLACEMENT_TRIES 100 // how many times to try placing a random pt outside of an obsticle before assuming something is wrong
-#define EPSILON 0.001 // stepsize for clipping
-
-// Use namespaces
-using namespace std;
+#define EPSILON 0.01 // stepsize for clipping
+#define RRT_MAX_NODES 200 
 
 // Global objects
 std::mt19937 gen(RANDOMSEED); 
@@ -33,6 +31,30 @@ struct rrtSearch;
 struct point;
 struct visMsgSubscriber;
 
+// Use namespaces
+using namespace std;
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "ros_demo"); // we're still in the ros_demo package
+    ros::NodeHandle rrt_node(RRT_MAX_NODES);
+
+    rrtSearch rrt(RRT_MAX_NODES);
+
+    //hot loop
+    while( ros::ok() )
+    {   
+        if(rrt.obst.size == 0 ){continue;} // skip if no info recieved from demo yet
+        if(!rrt.complete){rrt.addEdge();}
+        //elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
+
+        ros::spinOnce();
+        ros::spinOnce();
+    }
+
+
+
+}
 // Global functions
 double fRandom(double fMin, double fMax)
 {
@@ -40,19 +62,6 @@ double fRandom(double fMin, double fMax)
     double fRand = dist(gen);// use the random engine to pull somehting out of dist
     return(fRand);
 }
-
-int testFunction(int i)
-{
-    return(i);
-}
-
-class testclass
-{
-public:
-    int testInt = 3;
-private:
-    int privateTestInt = 4;
-};
 
 // Structs
 struct point
@@ -130,7 +139,6 @@ private:
     vector<point> tree; // where it all happens.
     point goalPoint; 
     vector<int> shortestPath;
-    ros::NodeHandle rrt_node;
     ros::Subscriber sub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 15, &rrtSearch::visMarkerCallback,this);
     ros::Publisher pub = rrt_node.advertise<visualization_msgs::Marker>("visualization_marker", 10);
     visualization_msgs::Marker startPoint;
