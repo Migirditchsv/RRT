@@ -17,6 +17,7 @@ catkin_package()
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(demo src/demo.cpp)
+## add_executable( rrt src/rrt.cpp )
 target_link_libraries(demo ${catkin_LIBRARIES})
 add_dependencies(demo ros_demo_generate_messages_cpp)
 
