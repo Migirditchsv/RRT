@@ -17,11 +17,6 @@
 // custom include
 #include "rrt.hpp"
 
-
-#define RRT_MAX_NODES 200 
-
-
-
 // Use namespaces
 using namespace std;
 
@@ -31,22 +26,29 @@ int main(int argc, char **argv)
     ros::NodeHandle rrt_node;
 
     rrtSearch rrt( (int)RRT_MAX_NODES );
+    cout<<"rrt.cpp: main(): rrt Created" <<endl;
     ros::Subscriber rrtSub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 15, &rrtSearch::visMarkerCallback, &rrt);
     ros::Publisher  rrtPub = rrt_node.advertise<visualization_msgs::Marker>("visualization_marker", 10);
-
+    //ros::Subscriber rrtdebugsub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 15, &rrtSearch::visMarkerCallback, &rrt);
+    cout<<"rrt.cpp: main(): pub/sub created"<<endl;
     //hot loop
+    cout<<"rrt.cpp: main(): ros::ok()"<<ros::ok()<<endl;
+    static int rrtLoopCounter = 0;
     while( ros::ok() )
     {   
-        if(rrt.getTreeSize() == 0 ){continue;} // skip if no info recieved from demo yet
+        cout<<"rrt.cpp: main() loop #: "<<rrtLoopCounter<<endl;
+        //if(rrt.getTreeSize() == 0 ){continue;} // skip if no info recieved from demo yet
         if(!rrt.complete)
         {
+            cout<<"rrt.cpp: main(): adding edge"<<endl;
             rrt.addEdge();
-            rrtPub.publish( rrt.getLineList() );
+            visualization_msgs::Marker lineList = rrt.getLineList();
+            cout<<"rrt.cpp: main(): publishing linelist" << endl;
+            rrtPub.publish( lineList );
         }
         //elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
-
         ros::spinOnce();
-        ros::spinOnce();
+        rrtLoopCounter++;
     }
 
 

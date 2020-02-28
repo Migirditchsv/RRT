@@ -21,6 +21,8 @@
 #define WIDTH 10.0
 #define PLACEMENT_TRIES 100 // how many times to try placing a random pt outside of an obsticle before assuming something is wrong
 #define EPSILON 0.001 // stepsize for clipping
+#define RRT_MAX_NODES 2000 
+
 
 // Use namespaces
 using namespace std;
@@ -70,10 +72,10 @@ struct point
     //constructor
     point()
     {
-        this -> x = -WIDTH; //init to bottom corner
-        this -> y = -WIDTH;
-        this -> index = -1;
-        this -> parentIndex = -1;
+        this -> x = NULL; //init to bottom corner
+        this -> y = NULL;
+        this -> index = NULL;
+        this -> parentIndex = NULL;
         this -> parent = NULL;
     }
     private:
@@ -87,7 +89,7 @@ public:
     // public vars
     bool complete;
     // public fxns
-    void setTreeSize(uint _treeSize){ treeSize = _treeSize; }
+    void setTreeSizeLimit(uint _treeSize){ treeSize = _treeSize; }
     int getTreeSize(){return( tree.size() );}
     void addEdge();
     void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
@@ -96,22 +98,23 @@ public:
     rrtSearch(int _treeSize)
     {
         cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
-        setTreeSize(_treeSize);
+        setTreeSizeLimit(_treeSize);
 
         // set published line list qualities
             // prep message [ move to rrtconstructor ]
-            lineList.header.frame_id = "map";
-            lineList.header.stamp = ros::Time();
+            lineList.header.frame_id = "map"; // tensor frame
+            lineList.header.stamp = ros::Time::now();
             lineList.ns = "searchTree";
-            lineList.id = 666;
+            lineList.id = 66;
             lineList.type = visualization_msgs::Marker::LINE_LIST;
             lineList.action = visualization_msgs::Marker::ADD;
+            lineList.lifetime = ros::Duration();
             // pose
             lineList.pose.orientation.w = 1.0;
             // scale
-            lineList.scale.x = 0.02;
+            lineList.scale.x = 1.0;
             // Points are green
-            lineList.color.g = 1.0f;
+            lineList.color.g = 1.0;
             lineList.color.a = 1.0;
 
 
@@ -188,7 +191,12 @@ void rrtSearch::setObst(const visualization_msgs::Marker::ConstPtr& newObst)
 
 void rrtSearch::setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint) // = not defined for marker to point
 {
-
+    //give tree a 0th element if not yet
+    if(tree.size()==0)
+    {
+        point placeHolder;
+        tree.push_back(placeHolder);
+    }
     tree[0].x = newPoint->points[0].x;
     tree[0].y = newPoint->points[0].y;
     tree[0].parentIndex = 0; //start is it's own parent
@@ -218,7 +226,8 @@ int rrtSearch::nearestNeighbor(int pointIndex)
     
     if(nearestIndex == -1)
     {
-        cerr<<"rrtSearch::No Nearest Neighbor Found For Point Index: "<<pointIndex<<endl;
+        cerr<<"rrtSearch::NearestNeighbor No Nearest Neighbor Found For Point Index: "
+        <<pointIndex<<" for tree.size() "<< tree.size()<<endl;
         exit(0);
     }
 
@@ -254,10 +263,18 @@ void rrtSearch::addEdge()
     int tries = 0;
     bool pathComplete, nodeLimit, success = false;
     cout<<" rrt.hpp| addEdge(): Starting"<<endl;
+
+    // check startpoint and goal point exist
+    if (tree.size() < 1 )
+    {
+        cout<<" rrt.hpp| addEdge(): No Start/Stop Points Registered Yet"<<endl;
+        return;
+    }
+
     while( !success && tries < 5)
     {
         // get index of newPoint
-        newPointIndex = sizeof(tree);
+        newPointIndex = tree.size();
         cout<<" rrt.hpp| addEdge(): newPointIndex: "<<newPointIndex<<endl;
         // attempt create the point to place, exits if out of points
         this -> addTreePoint();
@@ -267,10 +284,10 @@ void rrtSearch::addEdge()
         cout<<" rrt.hpp| addEdge(): point Validated"<<endl;
         // find nearest point to random point
         nearPointIndex = this -> nearestNeighbor(newPointIndex);
-        cout<<" rrt.hpp| addEdge()): Starting"<<endl;
+        cout<<" rrt.hpp| addEdge()): NearestNeighbor Index: "<< nearPointIndex<<endl;
         
         success = validEdge(nearPointIndex, newPointIndex);
-        cout<<" rrt.hpp| addEdge()): Starting"<<endl;
+        cout<<" rrt.hpp| addEdge()): validEdge status:"<<success<<endl;
         
         tries++;
     }
@@ -447,7 +464,7 @@ bool rrtSearch::validEdge(int nearIndex, int newIndex) // moves newIndex to a le
 
 void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
-    //cout << "visMarkerCallback received: " << msg->ns <<endl;
+    cout << "visMarkerCallback received: " << msg->ns <<endl;
     // check for null pointer,then copy in
     if( msg == NULL ){return;}
     const std::string ns = msg->ns;
@@ -477,6 +494,7 @@ void rrtSearch::visMarkerCallback(const visualization_msgs::Marker::ConstPtr& ms
      else if( ns == "searchTree")
     {   
         // skip
+        //cout << "rrt.hpp::rrtSearch::visMarkerCallback: received: searchTree: " << *msg <<endl;
         return;
     }
     else
@@ -493,8 +511,8 @@ void rrtSearch::generateLineList()
     geometry_msgs::Point parent, child;
 
     // set points z
-    parent.z = 0.0;
-    child.z  = 0.0;
+    parent.z = 0.1;
+    child.z  = 0.1;
 
     for(int childIndex = 0; childIndex<tree.size(); childIndex++ )
     {

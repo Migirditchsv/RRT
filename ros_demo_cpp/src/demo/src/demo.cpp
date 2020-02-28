@@ -53,7 +53,6 @@ int main(int argc, char **argv)
 
     //publisher publishes messages, the msg type must be consistent with definition advertise<>();
     chatter_pub.publish(msg);
-std::cout<<"MAIN SEG -7"<<std::endl;
 
 
   /******************** From here, we are defining and drawing obstacles and environment in the workspace **************************/
@@ -101,7 +100,6 @@ std::cout<<"MAIN SEG -7"<<std::endl;
 
     // Publish this to ROS system
     marker_pub.publish(obstBoundary);
-    std::cout<<"MAIN SEG -6"<<std::endl;
 
     //Create array of Visualization markers
     visualization_msgs::Marker obst [7];
@@ -144,7 +142,6 @@ std::cout<<"MAIN SEG -7"<<std::endl;
       obst[i].lifetime = ros::Duration();
       marker_pub.publish(obst[i]);
     }
-    std::cout<<"MAIN SEG -5"<<std::endl;
 
     //draw cylinder type obstacles
     for (int i = 4; i<7; i++) {
@@ -170,7 +167,6 @@ std::cout<<"MAIN SEG -7"<<std::endl;
       obst[i].lifetime = ros::Duration();
       marker_pub.publish(obst[i]);
     }
-    std::cout<<"MAIN SEG -4"<<std::endl;
 
 
     /******************** Defining start point and goal point *******************/
@@ -204,7 +200,6 @@ std::cout<<"MAIN SEG -7"<<std::endl;
     GoalPoint.points.push_back(point);
     GoalPoint.lifetime = ros::Duration();
     marker_pub.publish(GoalPoint);
-    std::cout<<"MAIN SEG -3"<<std::endl;
 
   /************************* From here, we are using points, lines  *** ******************/
 
@@ -265,7 +260,6 @@ std::cout<<"MAIN SEG -7"<<std::endl;
     //publish msgs
     marker_pub.publish(vertices);
     marker_pub.publish(edges);
-std::cout<<"MAIN SEG -2"<<std::endl;
 
   /******************** From here, we are drawing/animating a simple mobile object **************************/
 
@@ -274,7 +268,6 @@ std::cout<<"MAIN SEG -2"<<std::endl;
     static visualization_msgs::Marker path;
     rob.type = visualization_msgs::Marker::SPHERE;
     path.type = visualization_msgs::Marker::LINE_STRIP;
-std::cout<<"MAIN SEG -2.1"<<std::endl;
     rob.header.frame_id = path.header.frame_id = "map";  //NOTE: this should be "paired" to the frame_id entry in Rviz, the default setting in Rviz is "map"
     rob.header.stamp = path.header.stamp = ros::Time::now();
     rob.ns = path.ns = "rob";
@@ -295,7 +288,6 @@ std::cout<<"MAIN SEG -2.1"<<std::endl;
 
     path.scale.x = 0.02;
     path.pose.orientation.w = 1.0;
-std::cout<<"MAIN SEG -2.2"<<std::endl;
 
     int num_slice2 = 200;		// divide a circle into segments
     static int slice_index2 = 0;
@@ -310,14 +302,12 @@ std::cout<<"MAIN SEG -2.2"<<std::endl;
       p.z = 0.05;
 
       rob.pose.position = p;
-      std::cout<<"MAIN SEG -2.3"<<std::endl;
 
       path.points.push_back(p);		//for drawing path, which is line strip type
     }
 
     marker_pub.publish(rob);
     marker_pub.publish(path);
-std::cout<<"MAIN SEG -1"<<std::endl;
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
   /*
@@ -336,14 +326,11 @@ std::cout<<"MAIN SEG -1"<<std::endl;
       ROS_WARN_ONCE("Please run Rviz in another terminal.");
       sleep(1);
     }
-std::cout<<"MAIN SEG 3"<<std::endl;
 
     //ros spins, force ROS frame to refresh/update once
     ros::spinOnce();
-std::cout<<"MAIN SEG 4"<<std::endl;
     //leave some time interval between two frame refreshing
     loop_rate.sleep();
-std::cout<<"MAIN SEG 5"<<std::endl;
 
 
     ++frame_count;
