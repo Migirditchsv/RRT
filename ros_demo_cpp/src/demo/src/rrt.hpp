@@ -90,6 +90,8 @@ public:
     void setTreeSize(uint _treeSize){ treeSize = _treeSize; }
     int getTreeSize(){return( tree.size() );}
     void addEdge();
+    void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
+    visualization_msgs::Marker getLineList(){return lineList;}
 
     rrtSearch(int _treeSize)
     {
@@ -130,16 +132,14 @@ private:
     vector<point> tree; // where it all happens.
     point goalPoint; 
     vector<int> shortestPath;
-    ros::NodeHandle rrt_node;
-    ros::Subscriber sub = rrt_node.subscribe<visualization_msgs::Marker>("visualization_marker", 15, &rrtSearch::visMarkerCallback,this);
-    ros::Publisher pub = rrt_node.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+    //ros::Subscriber sub = nodePtr.subscribe<visualization_msgs::Marker>("visualization_marker", 15, &rrtSearch::visMarkerCallback,this);
+    //ros::Publisher pub = nodePtr.advertise<visualization_msgs::Marker>("visualization_marker", 10);
     visualization_msgs::Marker startPoint;
     visualization_msgs::Marker endPoint;
     visualization_msgs::Marker lineList; //how the tree is published
     //private fxns
     void setObst(const visualization_msgs::Marker::ConstPtr& newObst);
     void setGoalPoints(const visualization_msgs::Marker::ConstPtr& newPoint); // = not defined for marker to point
-    void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
     void addTreePoint();
     bool validPoint(int pointIndex);
     void validRandomPoint(int pointIndex);
@@ -293,11 +293,9 @@ void rrtSearch::addEdge()
     pathComplete = goalPoint.parent != NULL;
     if( nodeLimit or pathComplete){this -> complete = true;}
     cout<<" rrt.hpp| addEdge()): Complete check complete"<<endl;
-    // create and push visMsg to rviz
+    // update lineList
     generateLineList();
-    cout<<" rrt.hpp| addEdge()): line_list generated"<<endl;
-    pub.publish(lineList);
-    cout<<" rrt.hpp| addEdge()): line_list published"<<endl;
+
     // done
     return;
 }
