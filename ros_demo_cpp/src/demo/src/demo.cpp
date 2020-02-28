@@ -321,13 +321,7 @@ std::cout<<"MAIN SEG -1"<<std::endl;
  
   /******************** TODO: you will need to insert your code for drawing your paths and add whatever cool searching process **************************/
   /*
-  std::cout<<"MAIN SEG 0"<<std::endl;
-  static rrtSearch rrt(RRT_MAX_NODES);
-  std::cout<<"MAIN SEG 1"<<std::endl;
-  //std::cout<<"MAIN::TODO graphsize: "<<rrt.getTreeSize()<<std::endl;
-  if(!rrt.complete){rrt.addEdge();}
-  // elseif(rrt.complete){rrt.pubNextStep();} // publish next sollution step to rviz
-  std::cout<<"MAIN SEG 2"<<std::endl;
+  replace with subscriber to /rrt/pathing topic
   */
 
   /******************** To here, we finished displaying our components **************************/
