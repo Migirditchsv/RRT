@@ -18,10 +18,9 @@
 
 // Constants
 #define RANDOMSEED 19937
-#define WIDTH 10.0
-#define PLACEMENT_TRIES 100 // how many times to try placing a random pt outside of an obsticle before assuming something is wrong
+#define WIDTH 5.0
+#define PLACEMENT_TRIES 20 // how many times to try placing a random pt outside of an obsticle before assuming something is wrong
 #define EPSILON 0.001 // stepsize for clipping
-#define RRT_MAX_NODES 2000 
 
 
 // Use namespaces
@@ -42,19 +41,6 @@ double fRandom(double fMin, double fMax)
     double fRand = dist(gen);// use the random engine to pull somehting out of dist
     return(fRand);
 }
-
-int testFunction(int i)
-{
-    return(i);
-}
-
-class testclass
-{
-public:
-    int testInt = 3;
-private:
-    int privateTestInt = 4;
-};
 
 // Structs
 struct point
@@ -95,27 +81,23 @@ public:
     void visMarkerCallback(const visualization_msgs::Marker::ConstPtr& msg);
     visualization_msgs::Marker getLineList(){return lineList;}
 
-    rrtSearch(int _treeSize)
+    rrtSearch(int _treeSizeLimit)
     {
         cout<<" rrt.hpp| rrtSearch(int treeSize): constructor called"<<endl;
-        setTreeSizeLimit(_treeSize);
+        setTreeSizeLimit(_treeSizeLimit);
 
         // set published line list qualities
-            // prep message [ move to rrtconstructor ]
-            lineList.header.frame_id = "map"; // tensor frame
-            lineList.header.stamp = ros::Time::now();
-            lineList.ns = "searchTree";
-            lineList.id = 66;
-            lineList.type = visualization_msgs::Marker::LINE_LIST;
-            lineList.action = visualization_msgs::Marker::ADD;
-            lineList.lifetime = ros::Duration();
-            // pose
-            lineList.pose.orientation.w = 1.0;
-            // scale
-            lineList.scale.x = 1.0;
-            // Points are green
-            lineList.color.g = 1.0;
-            lineList.color.a = 1.0;
+        lineList.type = visualization_msgs::Marker:: LINE_LIST;
+        lineList.header.frame_id = "map";
+        lineList.header.stamp = ros::Time::now();
+        lineList.ns = "searchTree";
+        lineList.id = 666;
+        lineList.action = visualization_msgs::Marker::ADD;
+        lineList.scale.x = 0.02;
+        lineList.pose.orientation.x = lineList.pose.orientation.y = lineList.pose.orientation.z = 0;
+        lineList.pose.orientation.w = 1;
+        lineList.color.g = 1.0f;
+        lineList.color.a = 1.0;
 
 
         complete = false; //start incomplete        
@@ -510,6 +492,9 @@ void rrtSearch::generateLineList()
     int parentIndex;
     geometry_msgs::Point parent, child;
 
+    //clear out lineList
+    lineList.points.clear();
+
     // set points z
     parent.z = 0.1;
     child.z  = 0.1;
@@ -518,13 +503,14 @@ void rrtSearch::generateLineList()
     {
         parentIndex = tree[childIndex].parentIndex;
         if( parentIndex == childIndex ){continue;}
-        parent.x = tree[childIndex].x;
-        parent.y = tree[childIndex].y;
-        child.x = tree[childIndex].x;
-        child.y = tree[childIndex].y;
+        parent.x = tree[parentIndex].x;
+        parent.y = tree[parentIndex].y;
+        child.x =  tree[childIndex].x;
+        child.y =  tree[childIndex].y;
 
         lineList.points.push_back(parent);
         lineList.points.push_back(child);
+        //cout<<"rrt.hpp: rrtSearch::generateLineList lineList"<<lineList<<endl;
     }
 
     return;
