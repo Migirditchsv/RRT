@@ -1,4 +1,4 @@
-prefix=/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/devel
+prefix=/home/sam/Documents/Code/RRT/ros_demo_cpp/devel
 
 Name: ros_demo
 Description: Description of ros_demo

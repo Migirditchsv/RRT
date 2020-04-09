@@ -7,4 +7,7 @@
 # new environment variables
 
 # modified environment variables
-export PWD="/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/build"
+export LD_LIBRARY_PATH="/opt/ros/melodic/lib"
+export PKG_CONFIG_PATH="/opt/ros/melodic/lib/pkgconfig"
+export PWD="/home/sam/Documents/Code/RRT/ros_demo_cpp/build"
+export ROS_PACKAGE_PATH="/home/sam/Documents/Code/RRT/ros_demo_cpp/src:/opt/ros/melodic/share"

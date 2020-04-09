@@ -1,0 +1,2 @@
+demo
+-G Unix Makefiles -DCATKIN_DEVEL_PREFIX=/home/sam/Documents/Code/RRT/ros_demo_cpp/devel_isolated -DCMAKE_INSTALL_PREFIX=/home/sam/Documents/Code/RRT/ros_demo_cpp/install_isolated

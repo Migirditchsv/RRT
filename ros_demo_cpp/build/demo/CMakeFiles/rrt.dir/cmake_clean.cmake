@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/rrt.dir/src/rrt.cpp.o"
-  "/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/devel/lib/ros_demo/rrt.pdb"
-  "/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/devel/lib/ros_demo/rrt"
+  "/home/sam/Documents/Code/RRT/ros_demo_cpp/devel/lib/ros_demo/rrt.pdb"
+  "/home/sam/Documents/Code/RRT/ros_demo_cpp/devel/lib/ros_demo/rrt"
 )
 
 # Per-language clean rules from dependency scanning.

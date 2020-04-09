@@ -67,14 +67,14 @@ set(ros_demo_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(ros_demo_SOURCE_PREFIX /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/src/demo)
-  set(ros_demo_DEVEL_PREFIX /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/devel)
+  set(ros_demo_SOURCE_PREFIX /home/sam/Documents/Code/RRT/ros_demo_cpp/src/demo)
+  set(ros_demo_DEVEL_PREFIX /home/sam/Documents/Code/RRT/ros_demo_cpp/devel)
   set(ros_demo_INSTALL_PREFIX "")
   set(ros_demo_PREFIX ${ros_demo_DEVEL_PREFIX})
 else()
   set(ros_demo_SOURCE_PREFIX "")
   set(ros_demo_DEVEL_PREFIX "")
-  set(ros_demo_INSTALL_PREFIX /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/install)
+  set(ros_demo_INSTALL_PREFIX /home/sam/Documents/Code/RRT/ros_demo_cpp/install)
   set(ros_demo_PREFIX ${ros_demo_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/sam/Documents/Code/ROSdemo/ros_demo_cpp/install/lib;/home/sam/Documents/Code/ROSdemo/ros_demo_cpp/devel/lib;/opt/ros/melodic/lib)
+    foreach(path /home/sam/Documents/Code/RRT/ros_demo_cpp/install/lib;/home/sam/Documents/Code/RRT/ros_demo_cpp/devel/lib;/opt/ros/melodic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
